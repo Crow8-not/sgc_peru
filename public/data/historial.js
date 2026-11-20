@@ -6,9 +6,9 @@ const DEFAULT_HISTORY = [
     fecha: "18/11/2026 09:30",
     emisor: "Juan Pérez (GERENTE)",
     role: "gerente",
-    destino: "Callao • Solo Coordinadores Zonales",
-    canal: "Envío Individual Seguro",
+    destino: "Callao • Solo Encargados de Zona",
+    canal: "Mensaje Individual Privado",
     cantidad: 1,
-    mensaje: "Estimado coordinador, remitimos los lineamientos para la jornada de esta semana en el Callao."
+    mensaje: "Estimado encargado, te enviamos las indicaciones para la reunión de esta semana en el Callao."
   }
 ];

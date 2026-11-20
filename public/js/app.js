@@ -58,7 +58,22 @@ let selectedLoginRole = "gerente";
 let currentUser = null;
 let showUnmaskedPhones = false;
 
-let usersData = JSON.parse(localStorage.getItem("sgc_users")) || DEFAULT_USERS;
+const PROFILE_MIGRATION = {
+  "Coordinador Zonal": "Encargado de Zona",
+  "Líder Vecinal": "Líder de Zona",
+  "Profesional Especialista": "Especialista",
+  "Autoridad Local": "Autoridad Local",
+  "Participante Jornada": "Asistente"
+};
+
+function migrateUsers(list) {
+  return list.map(u => ({
+    ...u,
+    perfil: PROFILE_MIGRATION[u.perfil] || u.perfil
+  }));
+}
+
+let usersData = migrateUsers(JSON.parse(localStorage.getItem("sgc_users")) || DEFAULT_USERS);
 let groupsData = JSON.parse(localStorage.getItem("sgc_groups")) || DEFAULT_GROUPS;
 let historyData = JSON.parse(localStorage.getItem("sgc_history")) || DEFAULT_HISTORY;
 let announcementsData = JSON.parse(localStorage.getItem("sgc_announcements")) || DEFAULT_ANNOUNCEMENTS;
@@ -73,14 +88,14 @@ function saveState() {
 }
 
 function resetLocalData() {
-  usersData = [...DEFAULT_USERS];
+  usersData = DEFAULT_USERS.map(u => ({ ...u }));
   groupsData = DEFAULT_GROUPS.map(g => ({ ...g }));
   historyData = [...DEFAULT_HISTORY];
   announcementsData = [...DEFAULT_ANNOUNCEMENTS];
   joinedGroupIds = [...DEFAULT_LEADER_JOINED_GROUPS];
   saveState();
   initAppViews();
-  showToast("Datos de demostración restablecidos correctamente.");
+  showToast("Datos de prueba restablecidos.");
 }
 
 // ==========================================
@@ -174,12 +189,12 @@ function configureRoleUI() {
   const sendChannel = document.getElementById("sendChannel");
   if (isGerente) {
     sendChannel.innerHTML = `
-      <option value="Envío Individual Seguro (Sin exponer números)">Envío Individual Seguro (Sin exponer números)</option>
-      <option value="Canal de Avisos Centralizado de la Comunidad">Canal de Avisos Centralizado de la Comunidad</option>
+      <option value="Mensaje Individual Privado (Sin mostrar números)">Mensaje Individual Privado (Sin mostrar números)</option>
+      <option value="Canal de Avisos General de la Comunidad">Canal de Avisos General de la Comunidad</option>
     `;
   } else {
     sendChannel.innerHTML = `
-      <option value="Envío Individual Seguro (Red Local)">Envío Individual Seguro (Red Local)</option>
+      <option value="Mensaje Individual Privado (Tu Red)">Mensaje Individual Privado (Tu Red)</option>
     `;
   }
 }
@@ -216,20 +231,20 @@ function showSection(secId) {
   if (activeNav) activeNav.classList.add("active");
 
   const titlesGerente = {
-    dashboard: ["Panel General Nacional", "Monitoreo de la Comunidad WhatsApp Institucional (12,450 - 90,000 usuarios)"],
-    avisos: ["Canal de Avisos Centralizado", "Difusión oficial a miles de miembros a la vez con privacidad de números"],
-    personas: ["Directorio de Personas Idóneas", "Filtrado inteligente por departamento, distrito y perfil"],
-    envios: ["Envío Segmentado Nacional", "Comunica solo a las personas idóneas sin saturar grupos"],
-    comunidad: ["Comunidad y Moderación (50+ Grupos)", "Organización por región/categoría, control de estado y desvinculación"],
-    equipo: ["Acta y Equipo Asignado", "Detalles de entrega de celular corporativo y acuerdos"]
+    dashboard: ["Panel General Nacional", "Resumen de la Comunidad WhatsApp (de 12,450 a 90,000 personas)"],
+    avisos: ["Canal de Avisos Centralizado", "Publica avisos para miles de personas a la vez sin mostrar teléfonos"],
+    personas: ["Directorio de Personas Idóneas", "Busca rápidamente por departamento, distrito o rol"],
+    envios: ["Envío Segmentado Nacional", "Envía mensajes solo a las personas indicadas sin llenar otros chats"],
+    comunidad: ["Comunidad y Moderación (50+ Grupos)", "Ordena por región o tipo, pausa o desconecta grupos fácilmente"],
+    equipo: ["Acta y Equipo Asignado", "Datos del celular corporativo y acuerdos del proyecto"]
   };
 
   const titlesLider = {
-    dashboard: ["Mi Panel Operativo", "Gestión de participantes y comunicaciones locales con privacidad"],
-    avisos: ["Canal de Avisos Centralizado", "Comunicados generales oficiales publicados por Gerencia (solo lectura)"],
-    explorar: ["Explorar Subgrupos", "Libertad de participación: únete o sal de los subgrupos de tu interés"],
-    personas: ["Personas de mi Red", "Consulta de perfiles y registro local (números protegidos)"],
-    envios: ["Enviar Aviso Local", "Comunicación directa a personas idóneas sin exponer teléfonos"]
+    dashboard: ["Mi Panel Operativo", "Consulta contactos de tu red y envía mensajes con números ocultos"],
+    avisos: ["Canal de Avisos Centralizado", "Avisos oficiales publicados por Gerencia (solo lectura)"],
+    explorar: ["Explorar Subgrupos", "Elige libremente a qué grupos unirte o de cuáles salir"],
+    personas: ["Personas de mi Red", "Busca contactos por zona o rol (números ocultos por seguridad)"],
+    envios: ["Enviar Aviso Local", "Envía mensajes directos sin mostrar números de teléfono"]
   };
 
   const t = currentUser.role === "gerente" ? titlesGerente[secId] : titlesLider[secId];
@@ -276,24 +291,24 @@ function renderKPIs() {
   if (currentUser.role === "gerente") {
     container.innerHTML = `
       <div class="kpi-card">
-        <div class="kpi-label">Padrón Nacional Proyectado</div>
+        <div class="kpi-label">Total de Miembros en Grupos</div>
         <div class="kpi-value">${totalGroupMembers.toLocaleString("es-PE")}</div>
-        <div class="kpi-sub">Meta escalable: 90,000 usuarios</div>
+        <div class="kpi-sub">Meta estimada: 90,000 personas</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Registros Activos (Local)</div>
+        <div class="kpi-label">Contactos Guardados</div>
         <div class="kpi-value">${usersData.length}</div>
-        <div class="kpi-sub">Con número celular verificado</div>
+        <div class="kpi-sub">Con celular verificado</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Grupos Vinculados (Mod. 2)</div>
+        <div class="kpi-label">Grupos Conectados</div>
         <div class="kpi-value">${groupsData.length}</div>
-        <div class="kpi-sub">Organizados por Departamento</div>
+        <div class="kpi-sub">Ordenados por región</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Envíos Segmentados</div>
+        <div class="kpi-label">Mensajes por Filtro</div>
         <div class="kpi-value">${historyData.length}</div>
-        <div class="kpi-sub">100% Privacidad de números</div>
+        <div class="kpi-sub">Números 100% privados</div>
       </div>
     `;
   } else {
@@ -303,22 +318,22 @@ function renderKPIs() {
       <div class="kpi-card">
         <div class="kpi-label">Contactos Disponibles</div>
         <div class="kpi-value">${usersData.length}</div>
-        <div class="kpi-sub">Base operativa filtrable</div>
+        <div class="kpi-sub">Listos para filtrar</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Recibidos de Gerencia</div>
         <div class="kpi-value">${gerenteReceivedCount}</div>
-        <div class="kpi-sub">Comunicados institucionales</div>
+        <div class="kpi-sub">Avisos importantes</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Avisos Enviados (Líderes)</div>
+        <div class="kpi-label">Mensajes Enviados</div>
         <div class="kpi-value">${liderHistoryCount}</div>
         <div class="kpi-sub">Envío individual seguro</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Protección de Datos</div>
+        <div class="kpi-label">Privacidad de Números</div>
         <div class="kpi-value">100%</div>
-        <div class="kpi-sub">Números enmascarados</div>
+        <div class="kpi-sub">Teléfonos ocultos</div>
       </div>
     `;
   }
@@ -377,7 +392,7 @@ function renderUsersTable() {
   const tbody = document.getElementById("usersTableBody");
   tbody.innerHTML = "";
   filtered.forEach(u => {
-    const tagClass = u.perfil.includes("Coordinador") ? "tag-blue" :
+    const tagClass = u.perfil.includes("Encargado") ? "tag-blue" :
                      u.perfil.includes("Líder") ? "tag-green" :
                      u.perfil.includes("Autoridad") ? "tag-purple" : "tag-amber";
     tbody.innerHTML += `
@@ -396,7 +411,7 @@ function renderUsersTable() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">No se encontraron personas idóneas con esos filtros.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">No se encontraron personas con esos filtros.</td></tr>';
   }
 }
 
@@ -429,11 +444,11 @@ function addNewContact(e) {
   e.target.reset();
   document.getElementById("addContactCard").style.display = "none";
   initAppViews();
-  showToast("Contacto agregado localmente con protección de número.");
+  showToast("Contacto guardado con número protegido.");
 }
 
 // ==========================================
-// ENVÍO SEGMENTADO
+// ENVÍO POR FILTRO
 // ==========================================
 function getFilteredRecipients() {
   const dept = document.getElementById("sendDept").value;
@@ -453,8 +468,8 @@ function updateRecipientPreview() {
   const namesPreview = list.slice(0, 3).map(u => `${u.nombre} (${maskPhone(u.celular)})`).join(", ");
   const extra = list.length > 3 ? ` y ${list.length - 3} más...` : "";
   document.getElementById("recipientPreviewBox").innerHTML = `
-    Destinatarios idóneos encontrados: <strong>${list.length}</strong><br/>
-    <span style="font-size:12px; color:var(--muted);">${list.length > 0 ? "Ej: " + namesPreview + extra : "Ajuste los filtros para seleccionar destinatarios."}</span>
+    Personas encontradas para enviar: <strong>${list.length}</strong><br/>
+    <span style="font-size:12px; color:var(--muted);">${list.length > 0 ? "Ej: " + namesPreview + extra : "Cambia los filtros para elegir a quiénes enviar."}</span>
   `;
 }
 
@@ -464,14 +479,14 @@ function executeSegmentedSend() {
   const channel = document.getElementById("sendChannel").value;
   const dept = document.getElementById("sendDept").value || "Todo el Perú";
   const dist = document.getElementById("sendDistrito").value.trim();
-  const prof = document.getElementById("sendProfile").value || "Todos los perfiles";
+  const prof = document.getElementById("sendProfile").value || "Todos los roles";
 
   if (list.length === 0) {
-    showToast("Error: No hay destinatarios seleccionados.");
+    showToast("No hay personas seleccionadas para enviar.");
     return;
   }
   if (!msg) {
-    showToast("Por favor, escriba el mensaje a enviar.");
+    showToast("Por favor, escribe el mensaje antes de enviar.");
     return;
   }
 
@@ -492,7 +507,7 @@ function executeSegmentedSend() {
   document.getElementById("sendMessageText").value = "";
   renderHistory();
   renderKPIs();
-  showToast(`Mensaje enviado de forma segura a ${list.length} persona(s) idónea(s).`);
+  showToast(`Mensaje enviado de forma privada a ${list.length} persona(s).`);
 }
 
 function renderHistory() {
@@ -588,15 +603,15 @@ function renderAnnouncements() {
     .reduce((acc, g) => acc + Number(g.miembros), 0);
 
   if (reachBox) {
-    reachBox.innerHTML = `Alcance proyectado en grupos activos: <strong>${activeReach.toLocaleString("es-PE")}</strong> miembros (números privados).`;
+    reachBox.innerHTML = `Personas en grupos activos que recibirán el aviso: <strong>${activeReach.toLocaleString("es-PE")}</strong> (números privados).`;
   }
   if (countLabel) {
-    countLabel.textContent = `${announcementsData.length} ${announcementsData.length === 1 ? "anuncio" : "anuncios"}`;
+    countLabel.textContent = `${announcementsData.length} ${announcementsData.length === 1 ? "aviso" : "avisos"}`;
   }
   if (!feed) return;
 
   if (announcementsData.length === 0) {
-    feed.innerHTML = '<p style="font-size:13px; color:var(--muted);">Aún no hay anuncios publicados en el canal general.</p>';
+    feed.innerHTML = '<p style="font-size:13px; color:var(--muted);">Aún no hay avisos publicados.</p>';
     return;
   }
 
@@ -609,8 +624,8 @@ function renderAnnouncements() {
       <div class="history-dest">${a.titulo}</div>
       <div class="history-msg">${a.mensaje}</div>
       <div class="history-tags">
-        <span class="tag tag-blue">Alcance: ${Number(a.alcance).toLocaleString("es-PE")} miembros</span>
-        <span class="tag tag-green">Cifrado E2E · Números privados</span>
+        <span class="tag tag-blue">Llega a ${Number(a.alcance).toLocaleString("es-PE")} personas</span>
+        <span class="tag tag-green">Mensaje privado · Números ocultos</span>
       </div>
     </div>
   `).join("");
@@ -634,14 +649,14 @@ function addNewGroup(e) {
     categoria: document.getElementById("grpCategory").value,
     admin: document.getElementById("grpAdmin").value.trim(),
     miembros: Number(document.getElementById("grpMembers").value),
-    estado: "Vinculado (Mod. 2)",
+    estado: "Conectado (Mod. 2)",
     activo: true
   });
   saveState();
   e.target.reset();
   toggleGroupForm();
   initAppViews();
-  showToast("Grupo regional vinculado exitosamente mediante Modalidad 2.");
+  showToast("Grupo conectado a la comunidad correctamente.");
 }
 
 function toggleGroupStatus(id) {
@@ -651,7 +666,7 @@ function toggleGroupStatus(id) {
   grp.activo = grp.activo === false ? true : false;
   saveState();
   initAppViews();
-  showToast(grp.activo ? `Grupo "${grp.nombre}" activado.` : `Grupo "${grp.nombre}" pausado por moderación.`);
+  showToast(grp.activo ? `Grupo "${grp.nombre}" activado.` : `Grupo "${grp.nombre}" pausado.`);
 }
 
 function unlinkGroup(id) {
@@ -662,14 +677,14 @@ function unlinkGroup(id) {
   joinedGroupIds = joinedGroupIds.filter(gid => gid !== id);
   saveState();
   initAppViews();
-  showToast(`Grupo "${grp.nombre}" desvinculado de la comunidad.`);
+  showToast(`Grupo "${grp.nombre}" quitado de la comunidad.`);
 }
 
 function renderGroupsTable() {
   const tbody = document.getElementById("groupsTableBody");
   const capBadge = document.getElementById("groupCapacityBadge");
   if (capBadge) {
-    capBadge.textContent = `${groupsData.length} / 50+ grupos vinculados`;
+    capBadge.textContent = `${groupsData.length} / 50+ grupos conectados`;
   }
   if (!tbody) return;
 
@@ -701,7 +716,7 @@ function renderGroupsTable() {
         <td>
           <div class="action-group">
             <button class="btn btn-outline btn-sm" onclick="toggleGroupStatus(${g.id})">${isActive ? 'Pausar' : 'Activar'}</button>
-            <button class="btn btn-danger-outline btn-sm" onclick="unlinkGroup(${g.id})">Desvincular</button>
+            <button class="btn btn-danger-outline btn-sm" onclick="unlinkGroup(${g.id})">Quitar</button>
           </div>
         </td>
       </tr>
@@ -720,17 +735,17 @@ function toggleGroupMembership(id) {
   const grp = groupsData.find(g => g.id === id);
   if (!grp) return;
   if (grp.activo === false) {
-    showToast("Este subgrupo está pausado temporalmente por Gerencia.");
+    showToast("Este grupo está pausado temporalmente por Gerencia.");
     return;
   }
 
   const isJoined = joinedGroupIds.includes(id);
   if (isJoined) {
     joinedGroupIds = joinedGroupIds.filter(gid => gid !== id);
-    showToast(`Saliste del subgrupo "${grp.nombre}".`);
+    showToast(`Saliste del grupo "${grp.nombre}".`);
   } else {
     joinedGroupIds.push(id);
-    showToast(`Te uniste al subgrupo "${grp.nombre}".`);
+    showToast(`Te uniste al grupo "${grp.nombre}".`);
   }
   saveState();
   renderExploreGroups();
@@ -741,7 +756,7 @@ function renderExploreGroups() {
   const countEl = document.getElementById("joinedGroupsCount");
   if (countEl) {
     const activeJoined = joinedGroupIds.filter(id => groupsData.some(g => g.id === id)).length;
-    countEl.textContent = `Unido a ${activeJoined} de ${groupsData.length} subgrupos`;
+    countEl.textContent = `Unido a ${activeJoined} de ${groupsData.length} grupos`;
   }
   if (!grid) return;
 
@@ -758,7 +773,7 @@ function renderExploreGroups() {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<p style="font-size:13px; color:var(--muted);">No se encontraron subgrupos con esos filtros.</p>';
+    grid.innerHTML = '<p style="font-size:13px; color:var(--muted);">No se encontraron grupos con esos filtros.</p>';
     return;
   }
 
@@ -772,7 +787,7 @@ function renderExploreGroups() {
           <div class="subgroup-title">${g.nombre}</div>
           <div class="subgroup-meta">
             ${g.region} · ${cat}<br/>
-            Coordinador: ${g.admin} · ${Number(g.miembros).toLocaleString("es-PE")} miembros
+            Responsable: ${g.admin} · ${Number(g.miembros).toLocaleString("es-PE")} miembros
           </div>
         </div>
         <div class="subgroup-footer">

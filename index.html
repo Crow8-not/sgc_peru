@@ -41,7 +41,7 @@
       <div class="login-header">
         <span class="login-kicker">Proyecto Institucional · Perú</span>
         <h1>SGC WhatsApp Perú</h1>
-        <p>Plataforma de Gestión de Comunidades y Envío Segmentado</p>
+        <p>Plataforma para organizar grupos y enviar mensajes por filtro sin mostrar números</p>
       </div>
 
       <div class="role-tabs">
@@ -75,9 +75,9 @@
       </form>
 
       <div class="demo-creds">
-        <strong>Credenciales de Demostración (Modo Local):</strong><br/>
-        • <strong>Gerente (Control Total):</strong> <code>jperez</code> / <code>gerencia2026</code><br/>
-        • <strong>Líderes (Vista Operativa):</strong> <code>lider</code> / <code>lideres2026</code>
+        <strong>Accesos de Prueba (Modo Local):</strong><br/>
+        • <strong>Gerente (Control total):</strong> <code>jperez</code> / <code>gerencia2026</code><br/>
+        • <strong>Líderes (Vista operativa):</strong> <code>lider</code> / <code>lideres2026</code>
       </div>
     </div>
   </div>
@@ -165,23 +165,23 @@
         <div class="grid-2" id="dashboardGerenteView">
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Distribución Nacional por Regiones del Perú</span>
-              <span class="meta-label">Cobertura Nacional</span>
+              <span class="card-title">Personas por Región del Perú</span>
+              <span class="meta-label">Todo el país</span>
             </div>
             <div id="regionStatsContainer"></div>
           </div>
 
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Control Gerencial y Privacidad</span>
+              <span class="card-title">Cómo funciona y seguridad</span>
             </div>
             <div class="info-box">
-              <strong>Solución al problema de grupos masivos:</strong> En un grupo de WhatsApp de Callao o Lima están todos mezclados. Aquí Gerencia filtra y envía información <strong>solo a la persona idónea</strong> sin exponer los números celulares de los participantes.
+              <strong>Solución a los grupos saturados:</strong> En un chat masivo de Callao o Lima están todos mezclados. Aquí puedes filtrar y enviar información <strong>solo a las personas indicadas</strong> sin mostrar los teléfonos de los demás.
             </div>
             <ul class="clean-list">
-              <li><strong>Escala Nacional:</strong> Preparado para crecer de 12,450 a 90,000 registros.</li>
-              <li><strong>Modalidad 2:</strong> Vinculación rápida de grupos creados por profesionales.</li>
-              <li><strong>Seguridad de Roles:</strong> Los líderes tienen acceso restringido; solo Gerencia gestiona grupos y auditoría nacional.</li>
+              <li><strong>Gran alcance:</strong> Preparado para crecer de 12,450 a 90,000 contactos.</li>
+              <li><strong>Unión rápida (Modalidad 2):</strong> Conecta grupos que ya fueron creados por el equipo.</li>
+              <li><strong>Control por roles:</strong> Los líderes tienen vista operativa; solo Gerencia administra grupos y el control general.</li>
             </ul>
           </div>
         </div>
@@ -189,14 +189,14 @@
         <!-- Vista Líderes en Dashboard -->
         <div class="card" id="dashboardLiderView" style="display:none;">
           <div class="card-header">
-            <span class="card-title">Guía Operativa para Líderes Regionales</span>
-            <span class="meta-label">Acceso Operativo</span>
+            <span class="card-title">Guía Rápida para Líderes</span>
+            <span class="meta-label">Vista operativa</span>
           </div>
           <div class="info-box">
-            <strong>Bienvenido, Líder:</strong> Desde este panel puedes consultar el directorio de tu red, registrar nuevos participantes locales y enviar comunicados segmentados a personas idóneas.
+            <strong>Bienvenido, Líder:</strong> Desde aquí puedes buscar contactos de tu red, agregar nuevos participantes y enviar avisos solo a las personas indicadas.
           </div>
           <p class="muted-note">
-            <strong>Política de Privacidad Institucional:</strong> Por seguridad de los 12,450+ usuarios, los números celulares completos están protegidos y enmascarados (ej. <code>945 *** 409</code>). La gestión de grupos de la Comunidad y actas administrativas es exclusiva de Gerencia Central.
+            <strong>Privacidad de números:</strong> Para proteger los datos de más de 12,450 personas, los celulares aparecen ocultos (ej. <code>945 *** 409</code>). Solo Gerencia puede administrar grupos y ver los datos completos.
           </p>
           <div class="inbox-block">
             <div class="card-header inbox-header">
@@ -211,7 +211,7 @@
       <section id="sec-personas" class="section">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Buscador de Personas Idóneas</span>
+            <span class="card-title">Buscador de Personas</span>
             <div class="header-actions">
               <button id="btnTogglePrivacy" class="btn btn-outline btn-sm" onclick="togglePhoneMask()">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
@@ -230,17 +230,17 @@
               <option value="">Todos los Departamentos</option>
             </select>
             <select id="filterProfile" class="form-control" onchange="renderUsersTable()">
-              <option value="">Todos los Perfiles</option>
-              <option value="Coordinador Zonal">Coordinador Zonal</option>
-              <option value="Líder Vecinal">Líder Vecinal</option>
-              <option value="Profesional Especialista">Profesional Especialista</option>
+              <option value="">Todos los Roles</option>
+              <option value="Encargado de Zona">Encargado de Zona</option>
+              <option value="Líder de Zona">Líder de Zona</option>
+              <option value="Especialista">Especialista</option>
               <option value="Autoridad Local">Autoridad Local</option>
-              <option value="Participante Jornada">Participante Jornada</option>
+              <option value="Asistente">Asistente</option>
             </select>
             <select id="filterJornada" class="form-control" onchange="renderUsersTable()">
-              <option value="">Participación en Jornadas</option>
-              <option value="Sí">Asistió a Jornadas</option>
-              <option value="No">Registro Base</option>
+              <option value="">Asistencia a reuniones</option>
+              <option value="Sí">Participó en reuniones</option>
+              <option value="No">Registro inicial</option>
             </select>
           </div>
 
@@ -249,11 +249,11 @@
               <thead>
                 <tr>
                   <th>Nombre Completo</th>
-                  <th>Celular (Protegido)</th>
+                  <th>Celular (Oculto)</th>
                   <th>Departamento</th>
                   <th>Distrito</th>
-                  <th>Perfil / Idoneidad</th>
-                  <th>Jornada</th>
+                  <th>Rol o Función</th>
+                  <th>Reuniones</th>
                   <th>Acción</th>
                 </tr>
               </thead>
@@ -265,7 +265,7 @@
         <!-- Formulario rápido para agregar contacto local -->
         <div class="card" id="addContactCard" style="display:none;">
           <div class="card-header">
-            <span class="card-title">Registrar Nuevo Usuario en Base Local</span>
+            <span class="card-title">Agregar Nuevo Contacto</span>
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('addContactCard').style.display='none'">Cerrar</button>
           </div>
           <form onsubmit="addNewContact(event)" class="filters-bar" style="margin-bottom:0;">
@@ -286,11 +286,11 @@
             </select>
             <input type="text" id="newDistrito" class="form-control" placeholder="Distrito (ej. Ventanilla)" required />
             <select id="newPerfil" class="form-control" required>
-              <option value="Coordinador Zonal">Coordinador Zonal</option>
-              <option value="Líder Vecinal">Líder Vecinal</option>
-              <option value="Profesional Especialista">Profesional Especialista</option>
+              <option value="Encargado de Zona">Encargado de Zona</option>
+              <option value="Líder de Zona">Líder de Zona</option>
+              <option value="Especialista">Especialista</option>
               <option value="Autoridad Local">Autoridad Local</option>
-              <option value="Participante Jornada">Participante Jornada</option>
+              <option value="Asistente">Asistente</option>
             </select>
             <button type="submit" class="btn btn-wa">Guardar Contacto</button>
           </form>
@@ -302,14 +302,14 @@
         <div class="grid-2">
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Redactar Mensaje a Persona Idónea</span>
-              <span class="meta-label">Privacidad Activa</span>
+              <span class="card-title">Escribir Mensaje por Filtro</span>
+              <span class="meta-label">Números ocultos</span>
             </div>
 
             <div class="form-group">
-              <label>Departamento destino</label>
+              <label>Departamento</label>
               <select id="sendDept" class="form-control" onchange="updateRecipientPreview()">
-                <option value="">Todo el Perú (Nacional)</option>
+                <option value="">Todo el Perú</option>
               </select>
             </div>
             <div class="form-group">
@@ -317,42 +317,43 @@
               <input type="text" id="sendDistrito" class="form-control" placeholder="Ej. Callao, Miraflores..." oninput="updateRecipientPreview()" />
             </div>
             <div class="form-group">
-              <label>Perfil idóneo</label>
+              <label>Rol de la persona</label>
               <select id="sendProfile" class="form-control" onchange="updateRecipientPreview()">
-                <option value="">Todos los perfiles del filtro</option>
-                <option value="Coordinador Zonal">Solo Coordinadores Zonales</option>
-                <option value="Líder Vecinal">Solo Líderes Vecinales</option>
-                <option value="Profesional Especialista">Solo Profesionales Especialistas</option>
+                <option value="">Todos los roles del filtro</option>
+                <option value="Encargado de Zona">Solo Encargados de Zona</option>
+                <option value="Líder de Zona">Solo Líderes de Zona</option>
+                <option value="Especialista">Solo Especialistas</option>
                 <option value="Autoridad Local">Solo Autoridades Locales</option>
+                <option value="Asistente">Solo Asistentes</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Canal de difusión</label>
+              <label>Forma de envío</label>
               <select id="sendChannel" class="form-control"></select>
             </div>
             <div class="form-group">
-              <label>Mensaje institucional</label>
-              <textarea id="sendMessageText" rows="4" class="form-control" placeholder="Escribe el comunicado dirigido al perfil seleccionado..."></textarea>
+              <label>Mensaje</label>
+              <textarea id="sendMessageText" rows="4" class="form-control" placeholder="Escribe el mensaje para las personas seleccionadas..."></textarea>
             </div>
 
             <div class="info-box" id="recipientPreviewBox">
-              Destinatarios idóneos encontrados: <strong>0</strong>
+              Personas encontradas para enviar: <strong>0</strong>
             </div>
 
             <div class="e2e-note">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Cifrado de extremo a extremo · Envío individual sin exponer números entre participantes.</span>
+              <span>Mensajes privados (cifrado de extremo a extremo) · Cada persona recibe el aviso por separado sin ver los números de los demás.</span>
             </div>
 
             <button class="btn btn-wa" style="width:100%;" onclick="executeSegmentedSend()">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-              Enviar Información Segmentada
+              Enviar Mensaje
             </button>
           </div>
 
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Historial de Envíos</span>
+              <span class="card-title">Mensajes Enviados</span>
             </div>
             <div id="sentHistoryContainer" class="history-scroll"></div>
           </div>
@@ -363,31 +364,31 @@
       <section id="sec-avisos" class="section">
         <div class="e2e-note" style="margin-bottom:16px;">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span><strong>Canal de Avisos Centralizado:</strong> Los mensajes cuentan con cifrado de extremo a extremo y se difunden a miles de miembros sin exponer los números celulares entre sí.</span>
+          <span><strong>Canal de Avisos General:</strong> Los mensajes son privados (cifrado de extremo a extremo) y llegan a miles de personas sin mostrar sus teléfonos entre sí.</span>
         </div>
 
         <div class="grid-2">
           <!-- Formulario exclusivo de Gerencia -->
           <div class="card" id="announcementFormCard">
             <div class="card-header">
-              <span class="card-title">Publicar Anuncio General</span>
-              <span class="meta-label">Solo Administradores</span>
+              <span class="card-title">Publicar Aviso General</span>
+              <span class="meta-label">Solo Gerencia</span>
             </div>
             <form onsubmit="publishAnnouncement(event)">
               <div class="form-group">
-                <label for="annTitle">Título del Comunicado</label>
-                <input type="text" id="annTitle" class="form-control" placeholder="Ej. Convocatoria Nacional de Coordinadores" required />
+                <label for="annTitle">Título del aviso</label>
+                <input type="text" id="annTitle" class="form-control" placeholder="Ej. Reunión general de la semana" required />
               </div>
               <div class="form-group">
-                <label for="annMessage">Mensaje Oficial</label>
-                <textarea id="annMessage" rows="4" class="form-control" placeholder="Escriba el anuncio general para toda la comunidad..." required></textarea>
+                <label for="annMessage">Mensaje</label>
+                <textarea id="annMessage" rows="4" class="form-control" placeholder="Escribe el aviso general para toda la comunidad..." required></textarea>
               </div>
               <div class="info-box" id="announcementReachBox">
-                Alcance proyectado en grupos activos: <strong>0</strong> miembros (números privados).
+                Personas en grupos activos que recibirán el aviso: <strong>0</strong> (números privados).
               </div>
               <button type="submit" class="btn btn-primary">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-                Difundir a Toda la Comunidad
+                Publicar para Toda la Comunidad
               </button>
             </form>
           </div>
@@ -395,22 +396,22 @@
           <!-- Aviso de solo lectura para Líderes -->
           <div class="card" id="announcementReadOnlyCard" style="display:none;">
             <div class="card-header">
-              <span class="card-title">Modo Solo Lectura</span>
+              <span class="card-title">Solo Lectura</span>
               <span class="meta-label">Canal Oficial</span>
             </div>
             <div class="info-box">
-              En el <strong>Canal de Avisos Centralizado</strong> únicamente los administradores de Gerencia pueden difundir anuncios generales para evitar saturación y mantener el orden informativo.
+              En este canal <strong>solo Gerencia puede publicar avisos generales</strong> para evitar que el chat se llene de mensajes repetidos y mantener todo ordenado.
             </div>
             <p class="muted-note">
-              Todos los comunicados que aparecen en el muro llegan de forma individualizada y protegida, sin exponer tu número celular al resto de participantes.
+              Todos los avisos que ves aquí llegan de forma individual y segura, sin mostrar tu número de celular a los demás miembros.
             </p>
           </div>
 
           <!-- Muro de Anuncios -->
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Anuncios Publicados</span>
-              <span class="meta-label" id="announcementsCountLabel">0 anuncios</span>
+              <span class="card-title">Avisos Publicados</span>
+              <span class="meta-label" id="announcementsCountLabel">0 avisos</span>
             </div>
             <div id="announcementsFeed" class="history-scroll"></div>
           </div>
@@ -420,41 +421,41 @@
       <!-- SECCIÓN 4: COMUNIDAD Y MODERACIÓN (SOLO GERENTE) -->
       <section id="sec-comunidad" class="section">
         <div class="warn-box">
-          <strong>Organización Estructurada y Moderación (Modalidad 2):</strong> Vincula, ordena, pausa o desvincula hasta <strong>50 o más grupos</strong> por región, distrito o categoría sin saturar la lista principal de chats.
+          <strong>Orden de Grupos (Modalidad 2):</strong> Conecta, organiza, pausa o quita hasta <strong>50 o más grupos</strong> por región, distrito o tema sin saturar tu lista de chats.
         </div>
 
         <div class="card">
           <div class="card-header">
             <div>
-              <span class="card-title">Grupos Vinculados a la Comunidad</span>
-              <div class="meta-label" id="groupCapacityBadge" style="margin-top:2px;">0 / 50+ grupos vinculados</div>
+              <span class="card-title">Grupos Conectados a la Comunidad</span>
+              <div class="meta-label" id="groupCapacityBadge" style="margin-top:2px;">0 / 50+ grupos conectados</div>
             </div>
             <button class="btn btn-wa btn-sm" onclick="toggleGroupForm()">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              Vincular Nuevo Grupo (Mod. 2)
+              Conectar Nuevo Grupo
             </button>
           </div>
 
           <div id="addGroupForm" class="inline-form-panel" style="display:none;">
             <form onsubmit="addNewGroup(event)" class="filters-bar" style="margin-bottom:0;">
               <input type="text" id="grpName" class="form-control" placeholder="Nombre del Grupo (ej. Red Cusco)" required />
-              <input type="text" id="grpRegion" class="form-control" placeholder="Departamento/Región" required />
+              <input type="text" id="grpRegion" class="form-control" placeholder="Departamento o Región" required />
               <select id="grpCategory" class="form-control" required>
-                <option value="Regional">Categoría: Regional</option>
-                <option value="Distrital">Categoría: Distrital</option>
-                <option value="Temático">Categoría: Temático</option>
+                <option value="Regional">Tipo: Regional</option>
+                <option value="Distrital">Tipo: Distrital</option>
+                <option value="Temático">Tipo: Temático</option>
               </select>
-              <input type="text" id="grpAdmin" class="form-control" placeholder="Profesional creador" required />
-              <input type="number" id="grpMembers" class="form-control" placeholder="Cant. miembros" min="10" required />
-              <button type="submit" class="btn btn-primary">Vincular a Comunidad</button>
+              <input type="text" id="grpAdmin" class="form-control" placeholder="Responsable que lo creó" required />
+              <input type="number" id="grpMembers" class="form-control" placeholder="Cantidad de miembros" min="10" required />
+              <button type="submit" class="btn btn-primary">Conectar Grupo</button>
             </form>
           </div>
 
           <div class="filters-bar" style="grid-template-columns: repeat(3, 1fr);">
-            <input type="text" id="grpFilterSearch" class="form-control" placeholder="Buscar grupo o profesional..." oninput="renderGroupsTable()" />
-            <input type="text" id="grpFilterRegion" class="form-control" placeholder="Filtrar por región/distrito..." oninput="renderGroupsTable()" />
+            <input type="text" id="grpFilterSearch" class="form-control" placeholder="Buscar grupo o responsable..." oninput="renderGroupsTable()" />
+            <input type="text" id="grpFilterRegion" class="form-control" placeholder="Filtrar por región o distrito..." oninput="renderGroupsTable()" />
             <select id="grpFilterCategory" class="form-control" onchange="renderGroupsTable()">
-              <option value="">Todas las Categorías</option>
+              <option value="">Todos los Tipos</option>
               <option value="Regional">Regional</option>
               <option value="Distrital">Distrital</option>
               <option value="Temático">Temático</option>
@@ -465,12 +466,12 @@
             <table>
               <thead>
                 <tr>
-                  <th>Nombre del Subgrupo</th>
-                  <th>Región / Categoría</th>
+                  <th>Nombre del Grupo</th>
+                  <th>Región / Tipo</th>
                   <th>Creado por</th>
                   <th>Miembros</th>
                   <th>Estado</th>
-                  <th>Moderación</th>
+                  <th>Control</th>
                 </tr>
               </thead>
               <tbody id="groupsTableBody"></tbody>
@@ -484,21 +485,21 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <span class="card-title">Explorar Subgrupos de la Comunidad</span>
-              <div class="meta-label" id="joinedGroupsCount" style="margin-top:2px;">Unido a 0 subgrupos</div>
+              <span class="card-title">Explorar Grupos de la Comunidad</span>
+              <div class="meta-label" id="joinedGroupsCount" style="margin-top:2px;">Unido a 0 grupos</div>
             </div>
-            <span class="meta-label">Libertad de Participación</span>
+            <span class="meta-label">Participación libre</span>
           </div>
 
           <div class="info-box">
-            Explora los subgrupos organizados por región, distrito o tema y <strong>únete únicamente a los que te interesen</strong>. Puedes salir en cualquier momento.
+            Revisa los grupos ordenados por región, distrito o tema y <strong>únete solo a los que te interesen</strong>. Puedes salir cuando quieras.
           </div>
 
           <div class="filters-bar" style="grid-template-columns: repeat(3, 1fr);">
-            <input type="text" id="expFilterSearch" class="form-control" placeholder="Buscar subgrupo..." oninput="renderExploreGroups()" />
+            <input type="text" id="expFilterSearch" class="form-control" placeholder="Buscar grupo..." oninput="renderExploreGroups()" />
             <input type="text" id="expFilterRegion" class="form-control" placeholder="Filtrar por región..." oninput="renderExploreGroups()" />
             <select id="expFilterCategory" class="form-control" onchange="renderExploreGroups()">
-              <option value="">Todas las Categorías</option>
+              <option value="">Todos los Tipos</option>
               <option value="Regional">Regional</option>
               <option value="Distrital">Distrital</option>
               <option value="Temático">Temático</option>
@@ -513,15 +514,15 @@
       <section id="sec-equipo" class="section">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Ficha de Entrega de Equipo Celular y Designación</span>
-            <span class="meta-label">Cumplimiento Técnico Verificado</span>
+            <span class="card-title">Ficha de Entrega de Celular Corporativo</span>
+            <span class="meta-label">Registro verificado</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Celular Corporativo</th>
-                  <th>Datos del Responsable</th>
+                  <th>Responsable</th>
                   <th>Área / Gerencia</th>
                   <th>Correo Institucional</th>
                 </tr>
@@ -537,10 +538,10 @@
             </table>
           </div>
           <div class="agreements-block">
-            <h4>Acuerdos de Reunión Institucional:</h4>
-            <p>1. Se conforma la <strong>Comunidad de WhatsApp Institucional</strong> aprovechando que la mayor participación de los usuarios se logra mediante sus teléfonos celulares.</p>
-            <p>2. Se adopta la <strong>Modalidad 2</strong> (vinculación de grupos creados por las profesionales) para agilizar la puesta en marcha frente a un padrón de 12,450 a 90,000 usuarios a nivel nacional.</p>
-            <p>3. Se implementa esta herramienta web para garantizar el envío selectivo a la <strong>persona idónea</strong> por distrito/región, manteniendo el cifrado y la privacidad de los números celulares.</p>
+            <h4>Acuerdos de la Reunión:</h4>
+            <p>1. Se crea la <strong>Comunidad de WhatsApp Institucional</strong> porque la mayoría de personas participa desde su celular.</p>
+            <p>2. Se usa la <strong>Modalidad 2</strong> (conectar grupos ya creados por el equipo) para avanzar más rápido con una lista de 12,450 a 90,000 usuarios en todo el país.</p>
+            <p>3. Se usa esta página web para enviar mensajes solo a la <strong>persona indicada</strong> según su distrito o región, manteniendo los teléfonos ocultos y seguros.</p>
           </div>
         </div>
       </section>
