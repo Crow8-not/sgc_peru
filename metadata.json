@@ -1,0 +1,6 @@
+{
+  "name": "SGC-Perú | Sistema de Gestión de Comunidad WhatsApp",
+  "description": "Plataforma de gestión de comunidades WhatsApp y envío segmentado por roles, regiones y perfiles idóneos en Perú.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

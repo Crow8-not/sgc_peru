@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGC-Perú | Sistema de Gestión de Comunidad WhatsApp</title>
+  <style>
+    :root {
+      --primary: #0f2942;
+      --primary-light: #1e4976;
+      --wa-green: #075e54;
+      --wa-accent: #128c7e;
+      --wa-bright: #25d366;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --warning: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* =========================================
+       LOGIN SCREEN (RESPONSIVE)
+       ========================================= */
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--wa-green) 100%);
+      padding: 16px;
+    }
+    .login-card {
+      background: var(--surface);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+    .login-header { text-align: center; margin-bottom: 22px; }
+    .login-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .login-header h1 { font-size: 22px; color: var(--primary); margin-bottom: 6px; }
+    .login-header p { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+    .role-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--bg);
+      padding: 5px;
+      border-radius: 10px;
+    }
+    .role-tab {
+      border: none;
+      background: transparent;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-tab.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .form-control {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      transition: border 0.2s;
+    }
+    .form-control:focus { border-color: var(--wa-accent); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 40px;
+    }
+    .btn-primary { background: var(--primary); color: white; width: 100%; padding: 12px; }
+    .btn-primary:hover { background: var(--primary-light); }
+    .btn-wa { background: var(--wa-accent); color: white; }
+    .btn-wa:hover { background: var(--wa-green); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
+
+    .demo-creds {
+      margin-top: 18px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .demo-creds strong { color: var(--text); }
+    .error-msg {
+      background: #fee2e2;
+      color: var(--danger);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* =========================================
+       APP LAYOUT (DESKTOP & LAPTOP BASE)
+       ========================================= */
+    .app-container { display: none; min-height: 100vh; }
+
+    /* Barra superior solo visible en Tablet y Celular */
+    .mobile-header {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background: var(--primary);
+      color: white;
+      padding: 12px 16px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .mobile-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-toggle {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      color: white;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 95;
+    }
+    .sidebar-overlay.active { display: block; }
+
+    .sidebar {
+      width: 260px;
+      background: var(--primary);
+      color: white;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.25s ease;
+    }
+    .sidebar-brand {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-brand h2 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .sidebar-brand span { font-size: 11px; color: #94a3b8; display: block; margin-top: 4px; }
+    .close-sidebar-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .nav-menu { padding: 16px 12px; flex: 1; overflow-y: auto; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 4px;
+      transition: all 0.2s;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: var(--wa-accent); color: white; font-weight: 600; }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 12px;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .role-badge {
+      background: var(--wa-bright);
+      color: #064e3b;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .role-badge.lider {
+      background: #fde68a;
+      color: #78350f;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 28px 34px;
+      max-width: 1440px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .topbar h1 { font-size: 24px; color: var(--primary); }
+    .topbar p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* CARDS & GRIDS */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .kpi-label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .kpi-value { font-size: 26px; font-weight: 700; color: var(--primary); margin: 6px 0; }
+    .kpi-sub { font-size: 12px; color: var(--wa-accent); font-weight: 500; }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* TABLES */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+    th { background: #f8fafc; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; }
+    tr:hover { background: #f8fafc; }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .tag-blue { background: #dbeafe; color: #1e40af; }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-amber { background: #fef3c7; color: #92400e; }
+    .tag-purple { background: #f3e8ff; color: #6b21a8; }
+
+    .filters-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .progress-row { margin-bottom: 12px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; gap: 8px; flex-wrap: wrap; }
+    .progress-track { height: 8px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--wa-accent); border-radius: 999px; }
+
+    .info-box {
+      background: #f0fdf4;
+      border-left: 4px solid var(--wa-accent);
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .warn-box {
+      background: #fffbeb;
+      border-left: 4px solid var(--warning);
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      left: auto;
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      font-size: 14px;
+      display: none;
+      z-index: 999;
+      max-width: 90vw;
+    }
+
+    /* =========================================
+       BREAKPOINTS RESPONSIVE
+       ========================================= */
+
+    /* LAPTOP (992px a 1199px) */
+    @media (max-width: 1199px) {
+      .sidebar { width: 230px; }
+      .main-content { margin-left: 230px; padding: 22px 24px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* TABLET (641px a 991px) */
+    @media (max-width: 991px) {
+      .mobile-header { display: flex; }
+      .close-sidebar-btn { display: block; }
+      .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 20px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* CELULAR / MOBILE (<= 640px) */
+    @media (max-width: 640px) {
+      .login-card { padding: 24px 18px; }
+      .main-content { padding: 14px; }
+      .topbar h1 { font-size: 20px; }
+      .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+      .filters-bar { grid-template-columns: 1fr; }
+      .card { padding: 15px; }
+      .card-header { flex-direction: column; align-items: flex-start; }
+      .card-header > div { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+      .toast { left: 16px; right: 16px; bottom: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA DE LOGIN -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <span class="login-badge">Proyecto Institucional • Perú</span>
+        <h1>SGC WhatsApp Perú</h1>
+        <p>Plataforma de Gestión de Comunidades y Envío Segmentado</p>
+      </div>
+
+      <div class="role-tabs">
+        <button class="role-tab active" id="tabGerente" onclick="selectRole('gerente')">👔 Gerente</button>
+        <button class="role-tab" id="tabLider" onclick="selectRole('lider')">👥 Líderes</button>
+      </div>
+
+      <div id="loginError" class="error-msg">Usuario o contraseña incorrectos para el perfil seleccionado.</div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" class="form-control" placeholder="Ingrese su usuario" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" class="form-control" placeholder="Ingrese su contraseña" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Ingresar al Sistema</button>
+      </form>
+
+      <div class="demo-creds">
+        <strong>Credenciales de Demostración (Modo Local):</strong><br/>
+        • <strong>Gerente (Control Total):</strong> <code>jperez</code> / <code>gerencia2026</code><br/>
+        • <strong>Líderes (Vista Operativa):</strong> <code>lider</code> / <code>lideres2026</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- APLICACIÓN PRINCIPAL -->
+  <div id="appContainer" class="app-container">
+
+    <!-- HEADER MÓVIL / TABLET -->
+    <header class="mobile-header">
+      <div class="mobile-header-left">
+        <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir menú">☰</button>
+        <div>
+          <div style="font-weight:700; font-size:15px;">🇵🇪 SGC-Perú</div>
+          <div style="font-size:11px; color:#cbd5e1;" id="mobileUserRole">Panel</div>
+        </div>
+      </div>
+      <span id="mobileRoleBadge" class="role-badge">GERENTE</span>
+    </header>
+
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div>
+          <h2>🇵🇪 SGC-Perú</h2>
+          <span>Comunidad WhatsApp</span>
+        </div>
+        <button class="close-sidebar-btn" onclick="toggleMobileMenu()">✕</button>
+      </div>
+
+      <!-- El menú se renderiza dinámicamente según el rol -->
+      <nav class="nav-menu" id="navMenu"></nav>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <span id="sidebarUserName" style="font-weight:600;">Juan Pérez</span>
+          <span id="sidebarRoleBadge" class="role-badge">GERENTE</span>
+        </div>
+        <div style="color:#94a3b8; margin-bottom:10px; font-size:11px;" id="sidebarScope">Acceso Nacional</div>
+        <button class="btn btn-outline btn-sm" style="width:100%; color:white; border-color:rgba(255,255,255,0.25);" onclick="logout()">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+      <div class="topbar">
+        <div>
+          <h1 id="pageTitle">Panel General</h1>
+          <p id="pageSubtitle">Cargando información...</p>
+        </div>
+        <div id="gerenteTopActions">
+          <button class="btn btn-outline btn-sm" onclick="resetLocalData()">🔄 Restablecer Demo</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 1: DASHBOARD (ADAPTATIVO POR ROL) -->
+      <section id="sec-dashboard" class="section active">
+        <div class="kpi-grid" id="kpiGridContainer"></div>
+
+        <!-- Vista Gerente en Dashboard -->
+        <div class="grid-2" id="dashboardGerenteView">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Distribución Nacional por Regiones del Perú</span>
+              <span class="tag tag-green">Cobertura Nacional</span>
+            </div>
+            <div id="regionStatsContainer"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Control Gerencial y Privacidad</span>
+            </div>
+            <div class="info-box">
+              <strong>Solución al problema de grupos masivos:</strong> En un grupo de WhatsApp de Callao o Lima están todos mezclados. Aquí Gerencia filtra y envía información <strong>solo a la persona idónea</strong> sin exponer los números celulares de los participantes.
+            </div>
+            <ul style="font-size:13px; line-height:1.8; padding-left:18px; color:var(--text);">
+              <li><strong>Escala Nacional:</strong> Preparado para crecer de 12,450 a 90,000 registros.</li>
+              <li><strong>Modalidad 2:</strong> Vinculación rápida de grupos creados por profesionales.</li>
+              <li><strong>Seguridad de Roles:</strong> Los líderes tienen acceso restringido; solo Gerencia gestiona grupos y auditoría nacional.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Vista Líderes en Dashboard -->
+        <div class="card" id="dashboardLiderView" style="display:none;">
+          <div class="card-header">
+            <span class="card-title">Guía Operativa para Líderes Regionales</span>
+            <span class="tag tag-amber">Acceso Operativo</span>
+          </div>
+          <div class="info-box">
+            <strong>Bienvenido, Líder:</strong> Desde este panel puedes consultar el directorio de tu red, registrar nuevos participantes locales y enviar comunicados segmentados a personas idóneas.
+          </div>
+          <p style="font-size:13px; color:var(--muted); line-height:1.6;">
+            🔒 <strong>Política de Privacidad Institucional:</strong> Por seguridad de los 12,450+ usuarios, los números celulares completos están protegidos y enmascarados (ej. <code>945 *** 409</code>). La gestión de grupos de la Comunidad y actas administrativas es exclusiva de Gerencia Central.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: DIRECTORIO / PERSONA IDÓNEA -->
+      <section id="sec-personas" class="section">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Buscador de Personas Idóneas</span>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button id="btnTogglePrivacy" class="btn btn-outline btn-sm" onclick="togglePhoneMask()">👁️ Mostrar Números (Solo Gerencia)</button>
+              <button class="btn btn-wa btn-sm" onclick="openAddContactModal()">+ Nuevo Contacto</button>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <input type="text" id="filterSearch" class="form-control" placeholder="Buscar por nombre o distrito..." oninput="renderUsersTable()" />
+            <select id="filterDept" class="form-control" onchange="renderUsersTable()">
+              <option value="">Todos los Departamentos</option>
+            </select>
+            <select id="filterProfile" class="form-control" onchange="renderUsersTable()">
+              <option value="">Todos los Perfiles</option>
+              <option value="Coordinador Zonal">Coordinador Zonal</option>
+              <option value="Líder Vecinal">Líder Vecinal</option>
+              <option value="Profesional Especialista">Profesional Especialista</option>
+              <option value="Autoridad Local">Autoridad Local</option>
+              <option value="Participante Jornada">Participante Jornada</option>
+            </select>
+            <select id="filterJornada" class="form-control" onchange="renderUsersTable()">
+              <option value="">Participación en Jornadas</option>
+              <option value="Sí">Asistió a Jornadas</option>
+              <option value="No">Registro Base</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre Completo</th>
+                  <th>Celular (Protegido)</th>
+                  <th>Departamento</th>
+                  <th>Distrito</th>
+                  <th>Perfil / Idoneidad</th>
+                  <th>Jornada</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Formulario rápido para agregar contacto local -->
+        <div class="card" id="addContactCard" style="display:none;">
+          <div class="card-header">
+            <span class="card-title">Registrar Nuevo Usuario en Base Local</span>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('addContactCard').style.display='none'">Cerrar</button>
+          </div>
+          <form onsubmit="addNewContact(event)" class="filters-bar" style="margin-bottom:0;">
+            <input type="text" id="newNombre" class="form-control" placeholder="Nombres y Apellidos" required />
+            <input type="text" id="newCelular" class="form-control" placeholder="Celular (9 dígitos)" pattern="9[0-9]{8}" required />
+            <select id="newDept" class="form-control" required>
+              <option value="Callao">Callao</option>
+              <option value="Lima">Lima</option>
+              <option value="Arequipa">Arequipa</option>
+              <option value="Cusco">Cusco</option>
+              <option value="La Libertad">La Libertad</option>
+              <option value="Piura">Piura</option>
+              <option value="Lambayeque">Lambayeque</option>
+              <option value="Junín">Junín</option>
+              <option value="Loreto">Loreto</option>
+              <option value="Puno">Puno</option>
+              <option value="Áncash">Áncash</option>
+            </select>
+            <input type="text" id="newDistrito" class="form-control" placeholder="Distrito (ej. Ventanilla)" required />
+            <select id="newPerfil" class="form-control" required>
+              <option value="Coordinador Zonal">Coordinador Zonal</option>
+              <option value="Líder Vecinal">Líder Vecinal</option>
+              <option value="Profesional Especialista">Profesional Especialista</option>
+              <option value="Autoridad Local">Autoridad Local</option>
+              <option value="Participante Jornada">Participante Jornada</option>
+            </select>
+            <button type="submit" class="btn btn-wa">Guardar Contacto</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 3: ENVÍO SEGMENTADO -->
+      <section id="sec-envios" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Redactar Mensaje a Persona Idónea</span>
+              <span class="tag tag-blue">Privacidad Activa</span>
+            </div>
+
+            <div class="form-group">
+              <label>1. Seleccionar Departamento Destino</label>
+              <select id="sendDept" class="form-control" onchange="updateRecipientPreview()">
+                <option value="">Todo el Perú (Nacional)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>2. Filtrar por Distrito (Opcional, ej: Callao, Miraflores)</label>
+              <input type="text" id="sendDistrito" class="form-control" placeholder="Escribir distrito específico..." oninput="updateRecipientPreview()" />
+            </div>
+            <div class="form-group">
+              <label>3. Seleccionar Perfil Idóneo</label>
+              <select id="sendProfile" class="form-control" onchange="updateRecipientPreview()">
+                <option value="">Todos los perfiles del filtro</option>
+                <option value="Coordinador Zonal">Solo Coordinadores Zonales</option>
+                <option value="Líder Vecinal">Solo Líderes Vecinales</option>
+                <option value="Profesional Especialista">Solo Profesionales Especialistas</option>
+                <option value="Autoridad Local">Solo Autoridades Locales</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>4. Canal de Difusión</label>
+              <select id="sendChannel" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label>5. Mensaje Institucional</label>
+              <textarea id="sendMessageText" rows="4" class="form-control" placeholder="Escriba aquí el comunicado dirigido únicamente al perfil seleccionado..."></textarea>
+            </div>
+
+            <div class="info-box" id="recipientPreviewBox">
+              Destinatarios idóneos encontrados: <strong>0</strong>
+            </div>
+
+            <button class="btn btn-wa" style="width:100%;" onclick="executeSegmentedSend()">🚀 Enviar Información Segmentada</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Historial de Envíos</span>
+            </div>
+            <div id="sentHistoryContainer" style="max-height:480px; overflow-y:auto;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 4: COMUNIDAD Y MODALIDAD 2 (SOLO GERENTE) -->
+      <section id="sec-comunidad" class="section">
+        <div class="warn-box">
+          <strong>Decisión Técnica Aprobada (Modalidad 2 - Rápida):</strong> En lugar de crear grupos desde cero y cargar 12,450 contactos manualmente, se agrega al administrador (<strong>Juan Pérez - 945657409</strong>) a los grupos ya creados por las profesionales y se vinculan directamente a la Comunidad Nacional.
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Grupos Regionales Vinculados a la Comunidad</span>
+            <button class="btn btn-wa btn-sm" onclick="toggleGroupForm()">+ Vincular Nuevo Grupo (Mod. 2)</button>
+          </div>
+
+          <div id="addGroupForm" style="display:none; margin-bottom:16px; padding:14px; background:#f8fafc; border-radius:8px;">
+            <form onsubmit="addNewGroup(event)" class="filters-bar" style="margin-bottom:0;">
+              <input type="text" id="grpName" class="form-control" placeholder="Nombre del Grupo (ej. Red Cusco)" required />
+              <input type="text" id="grpRegion" class="form-control" placeholder="Departamento/Región" required />
+              <input type="text" id="grpAdmin" class="form-control" placeholder="Profesional creador" required />
+              <input type="number" id="grpMembers" class="form-control" placeholder="Cant. miembros" min="10" required />
+              <button type="submit" class="btn btn-primary">Vincular a Comunidad</button>
+            </form>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre del Subgrupo</th>
+                  <th>Región / Departamento</th>
+                  <th>Creado por (Profesional)</th>
+                  <th>Miembros</th>
+                  <th>Estado en Comunidad</th>
+                </tr>
+              </thead>
+              <tbody id="groupsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 5: ACTA Y EQUIPO ASIGNADO (SOLO GERENTE) -->
+      <section id="sec-equipo" class="section">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Ficha de Entrega de Equipo Celular y Designación</span>
+            <span class="tag tag-green">Cumplimiento Técnico Verificado</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Celular Corporativo</th>
+                  <th>Datos del Responsable</th>
+                  <th>Área / Gerencia</th>
+                  <th>Correo Institucional</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>945657409</strong></td>
+                  <td><strong>JUAN PEREZ</strong></td>
+                  <td>SUBGERENCIA – GERENCIA CENTRAL</td>
+                  <td>jperez1214@empresaprivadaopublicagob.pe</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:20px; font-size:14px; line-height:1.7; color:var(--text);">
+            <h4 style="color:var(--primary); margin-bottom:8px;">Acuerdos de Reunión Institucional:</h4>
+            <p>1. Se conforma la <strong>Comunidad de WhatsApp Institucional</strong> aprovechando que la mayor participación de los usuarios se logra mediante sus teléfonos celulares.</p>
+            <p>2. Se adopta la <strong>Modalidad 2</strong> (vinculación de grupos creados por las profesionales) para agilizar la puesta en marcha frente a un padrón de 12,450 a 90,000 usuarios a nivel nacional.</p>
+            <p>3. Se implementa esta herramienta web para garantizar el envío selectivo a la <strong>persona idónea</strong> por distrito/región, manteniendo el cifrado y la privacidad de los números celulares.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ==========================================
+    // DATOS INICIALES LOCALES (PERÚ)
+    // ==========================================
+    const DEFAULT_USERS = [
+      { id: 1, nombre: "Carlos Mendoza Quispe", celular: "987654321", dept: "Callao", distrito: "Callao", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 2, nombre: "María Elena Torres Vega", celular: "945112233", dept: "Callao", distrito: "Ventanilla", perfil: "Líder Vecinal", jornada: "Sí" },
+      { id: 3, nombre: "Jorge Luis Paredes Ríos", celular: "998877665", dept: "Callao", distrito: "Bellavista", perfil: "Profesional Especialista", jornada: "No" },
+      { id: 4, nombre: "Lucía Fernanda Rojas Díaz", celular: "912345678", dept: "Lima", distrito: "San Juan de Lurigancho", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 5, nombre: "Pedro Pablo Castillo Cruz", celular: "955443322", dept: "Lima", distrito: "Miraflores", perfil: "Autoridad Local", jornada: "Sí" },
+      { id: 6, nombre: "Ana Sofía Huamán Flores", celular: "966778899", dept: "Lima", distrito: "Comas", perfil: "Participante Jornada", jornada: "Sí" },
+      { id: 7, nombre: "Roberto Carlos Apaza Mamani", celular: "933221100", dept: "Arequipa", distrito: "Yanahuara", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 8, nombre: "Valeria Alejandra Chávez", celular: "944556677", dept: "Arequipa", distrito: "Cayma", perfil: "Profesional Especialista", jornada: "Sí" },
+      { id: 9, nombre: "Mateo Sebastián Condori", celular: "977889900", dept: "Cusco", distrito: "Wanchaq", perfil: "Líder Vecinal", jornada: "Sí" },
+      { id: 10, nombre: "Carmen Rosa Vargas León", celular: "922334455", dept: "Cusco", distrito: "San Sebastián", perfil: "Autoridad Local", jornada: "No" },
+      { id: 11, nombre: "Luis Alberto Sánchez Mora", celular: "911223344", dept: "La Libertad", distrito: "Trujillo", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 12, nombre: "Diana Carolina Morales", celular: "988990011", dept: "Piura", distrito: "Castilla", perfil: "Líder Vecinal", jornada: "Sí" },
+      { id: 13, nombre: "Hugo Enrique Salazar", celular: "954321987", dept: "Lambayeque", distrito: "Chiclayo", perfil: "Profesional Especialista", jornada: "Sí" },
+      { id: 14, nombre: "Fiorella Beatriz Ramírez", celular: "965432198", dept: "Junín", distrito: "Huancayo", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 15, nombre: "Óscar Iván Rengifo Tapia", celular: "976543219", dept: "Loreto", distrito: "Iquitos", perfil: "Líder Vecinal", jornada: "No" },
+      { id: 16, nombre: "Gladys Marisol Choque", celular: "987123456", dept: "Puno", distrito: "Juliaca", perfil: "Participante Jornada", jornada: "Sí" },
+      { id: 17, nombre: "Fernando José Medina", celular: "943216789", dept: "Áncash", distrito: "Chimbote", perfil: "Autoridad Local", jornada: "Sí" },
+      { id: 18, nombre: "Patricia Milagros Silva", celular: "932165498", dept: "Ica", distrito: "Ica", perfil: "Coordinador Zonal", jornada: "Sí" },
+      { id: 19, nombre: "Ricardo Alonso Guevara", celular: "921987654", dept: "Tacna", distrito: "Tacna", perfil: "Profesional Especialista", jornada: "Sí" },
+      { id: 20, nombre: "Sandra Paola Núñez", celular: "919876543", dept: "San Martín", distrito: "Tarapoto", perfil: "Líder Vecinal", jornada: "Sí" }
+    ];
+
+    const DEFAULT_GROUPS = [
+      { id: 1, nombre: "Comunidad Callao Central", region: "Callao", admin: "Lic. Patricia Gómez", miembros: 1420, estado: "Vinculado (Mod. 2)" },
+      { id: 2, nombre: "Lima Metropolitana Norte y Este", region: "Lima", admin: "Ing. Marcos Villanueva", miembros: 4850, estado: "Vinculado (Mod. 2)" },
+      { id: 3, nombre: "Macro Región Sur - Arequipa", region: "Arequipa", admin: "Dra. Claudia Benavides", miembros: 1680, estado: "Vinculado (Mod. 2)" },
+      { id: 4, nombre: "Red Andina Cusco y Puno", region: "Cusco / Puno", admin: "Lic. Wilfredo Quispe", miembros: 1540, estado: "Vinculado (Mod. 2)" },
+      { id: 5, nombre: "Macro Región Norte (Trujillo/Piura)", region: "La Libertad / Piura", admin: "Mg. Rosaura Paredes", miembros: 1920, estado: "Vinculado (Mod. 2)" },
+      { id: 6, nombre: "Red Amazónica Loreto y San Martín", region: "Loreto / San Martín", admin: "Lic. Javier Panduro", miembros: 1040, estado: "Vinculado (Mod. 2)" }
+    ];
+
+    const DEFAULT_HISTORY = [
+      {
+        fecha: "18/11/2026 09:30",
+        emisor: "Juan Pérez (GERENTE)",
+        role: "gerente",
+        destino: "Callao • Solo Coordinadores Zonales",
+        canal: "Envío Individual Seguro",
+        cantidad: 1,
+        mensaje: "Estimado coordinador, remitimos los lineamientos para la jornada de esta semana en el Callao."
+      }
+    ];
+
+    // Definición de Menús por Rol (Separación estricta)
+    const MENUS_BY_ROLE = {
+      gerente: [
+        { id: "dashboard", icon: "📊", label: "Panel General Nacional" },
+        { id: "personas", icon: "🎯", label: "Persona Idónea (Directorio)" },
+        { id: "envios", icon: "💬", label: "Envío Segmentado" },
+        { id: "comunidad", icon: "🌐", label: "Comunidad y Modalidad 2" },
+        { id: "equipo", icon: "📱", label: "Acta y Equipo Asignado" }
+      ],
+      lider: [
+        { id: "dashboard", icon: "🏠", label: "Mi Panel Operativo" },
+        { id: "personas", icon: "🎯", label: "Personas de mi Red" },
+        { id: "envios", icon: "💬", label: "Enviar Aviso Local" }
+      ]
+    };
+
+    let selectedLoginRole = "gerente";
+    let currentUser = null;
+    let showUnmaskedPhones = false;
+
+    let usersData = JSON.parse(localStorage.getItem("sgc_users")) || DEFAULT_USERS;
+    let groupsData = JSON.parse(localStorage.getItem("sgc_groups")) || DEFAULT_GROUPS;
+    let historyData = JSON.parse(localStorage.getItem("sgc_history")) || DEFAULT_HISTORY;
+
+    function saveState() {
+      localStorage.setItem("sgc_users", JSON.stringify(usersData));
+      localStorage.setItem("sgc_groups", JSON.stringify(groupsData));
+      localStorage.setItem("sgc_history", JSON.stringify(historyData));
+    }
+
+    function resetLocalData() {
+      usersData = [...DEFAULT_USERS];
+      groupsData = [...DEFAULT_GROUPS];
+      historyData = [...DEFAULT_HISTORY];
+      saveState();
+      initAppViews();
+      showToast("Datos de demostración restablecidos correctamente.");
+    }
+
+    // ==========================================
+    // MENÚ MÓVIL / TABLET
+    // ==========================================
+    function toggleMobileMenu() {
+      document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("sidebarOverlay").classList.toggle("active");
+    }
+
+    // ==========================================
+    // LOGIN Y ROLES
+    // ==========================================
+    function selectRole(role) {
+      selectedLoginRole = role;
+      document.getElementById("tabGerente").classList.toggle("active", role === "gerente");
+      document.getElementById("tabLider").classList.toggle("active", role === "lider");
+      document.getElementById("loginError").style.display = "none";
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById("username").value.trim();
+      const p = document.getElementById("password").value.trim();
+      const err = document.getElementById("loginError");
+
+      if (selectedLoginRole === "gerente" && u === "jperez" && p === "gerencia2026") {
+        currentUser = { name: "Juan Pérez", role: "gerente", label: "GERENTE", scope: "Acceso Nacional (Todo el Perú)" };
+      } else if (selectedLoginRole === "lider" && u === "lider" && p === "lideres2026") {
+        currentUser = { name: "Líder Regional", role: "lider", label: "LÍDERES", scope: "Acceso Operativo (Sin gestión de grupos)" };
+      } else {
+        err.style.display = "block";
+        return;
+      }
+
+      err.style.display = "none";
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appContainer").style.display = "block";
+      configureRoleUI();
+      initAppViews();
+      showSection("dashboard");
+    }
+
+    function configureRoleUI() {
+      const isGerente = currentUser.role === "gerente";
+
+      // Badges y textos de usuario
+      document.getElementById("sidebarUserName").textContent = currentUser.name;
+      document.getElementById("sidebarScope").textContent = currentUser.scope;
+      document.getElementById("mobileUserRole").textContent = currentUser.name;
+
+      const sBadge = document.getElementById("sidebarRoleBadge");
+      const mBadge = document.getElementById("mobileRoleBadge");
+      sBadge.textContent = currentUser.label;
+      mBadge.textContent = currentUser.label;
+      sBadge.className = isGerente ? "role-badge" : "role-badge lider";
+      mBadge.className = isGerente ? "role-badge" : "role-badge lider";
+
+      // Construir menú lateral exclusivo del rol
+      const navMenu = document.getElementById("navMenu");
+      navMenu.innerHTML = "";
+      MENUS_BY_ROLE[currentUser.role].forEach((item, idx) => {
+        navMenu.innerHTML += `
+          <div class="nav-item ${idx === 0 ? 'active' : ''}" id="nav-${item.id}" onclick="showSection('${item.id}')">
+            ${item.icon} ${item.label}
+          </div>
+        `;
+      });
+
+      // Mostrar/ocultar elementos exclusivos de Gerencia
+      document.getElementById("gerenteTopActions").style.display = isGerente ? "block" : "none";
+      document.getElementById("dashboardGerenteView").style.display = isGerente ? "grid" : "none";
+      document.getElementById("dashboardLiderView").style.display = isGerente ? "none" : "block";
+
+      const btnPrivacy = document.getElementById("btnTogglePrivacy");
+      if (isGerente) {
+        btnPrivacy.style.display = "inline-flex";
+      } else {
+        showUnmaskedPhones = false;
+        btnPrivacy.style.display = "none";
+      }
+
+      // Canales de envío según rol
+      const sendChannel = document.getElementById("sendChannel");
+      if (isGerente) {
+        sendChannel.innerHTML = `
+          <option value="Envío Individual Seguro (Sin exponer números)">Envío Individual Seguro (Sin exponer números)</option>
+          <option value="Canal de Avisos Centralizado de la Comunidad">Canal de Avisos Centralizado de la Comunidad</option>
+        `;
+      } else {
+        sendChannel.innerHTML = `
+          <option value="Envío Individual Seguro (Red Local)">Envío Individual Seguro (Red Local)</option>
+        `;
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      showUnmaskedPhones = false;
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("sidebarOverlay").classList.remove("active");
+      document.getElementById("appContainer").style.display = "none";
+      document.getElementById("loginScreen").style.display = "flex";
+    }
+
+    // ==========================================
+    // NAVEGACIÓN CON PROTECCIÓN DE ROL
+    // ==========================================
+    function showSection(secId) {
+      // Bloquear acceso a secciones exclusivas de Gerente si es Líder
+      const allowedIds = MENUS_BY_ROLE[currentUser.role].map(m => m.id);
+      if (!allowedIds.includes(secId)) {
+        showToast("Acceso denegado: Módulo exclusivo de Gerencia.");
+        return;
+      }
+
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.getElementById("sec-" + secId).classList.add("active");
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const activeNav = document.getElementById("nav-" + secId);
+      if (activeNav) activeNav.classList.add("active");
+
+      const titlesGerente = {
+        dashboard: ["Panel General Nacional", "Monitoreo de la Comunidad WhatsApp Institucional (12,450 - 90,000 usuarios)"],
+        personas: ["Directorio de Personas Idóneas", "Filtrado inteligente por departamento, distrito y perfil"],
+        envios: ["Envío Segmentado Nacional", "Comunica solo a las personas idóneas sin saturar grupos"],
+        comunidad: ["Comunidad y Modalidad 2", "Vinculación rápida de grupos creados por profesionales"],
+        equipo: ["Acta y Equipo Asignado", "Detalles de entrega de celular corporativo y acuerdos"]
+      };
+
+      const titlesLider = {
+        dashboard: ["Mi Panel Operativo", "Gestión de participantes y comunicaciones locales con privacidad"],
+        personas: ["Personas de mi Red", "Consulta de perfiles y registro local (números protegidos)"],
+        envios: ["Enviar Aviso Local", "Comunicación directa a personas idóneas sin exponer teléfonos"]
+      };
+
+      const t = currentUser.role === "gerente" ? titlesGerente[secId] : titlesLider[secId];
+      document.getElementById("pageTitle").textContent = t[0];
+      document.getElementById("pageSubtitle").textContent = t[1];
+
+      // Cerrar menú en móvil/tablet al navegar
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("sidebarOverlay").classList.remove("active");
+    }
+
+    // ==========================================
+    // RENDERIZADO DE VISTAS
+    // ==========================================
+    function initAppViews() {
+      populateDeptSelects();
+      renderKPIs();
+      renderRegionStats();
+      renderUsersTable();
+      renderGroupsTable();
+      updateRecipientPreview();
+      renderHistory();
+    }
+
+    function populateDeptSelects() {
+      const depts = [...new Set(usersData.map(u => u.dept))].sort();
+      const filterDept = document.getElementById("filterDept");
+      const sendDept = document.getElementById("sendDept");
+
+      filterDept.innerHTML = '<option value="">Todos los Departamentos</option>';
+      sendDept.innerHTML = '<option value="">Todo el Perú (Nacional)</option>';
+
+      depts.forEach(d => {
+        filterDept.innerHTML += `<option value="${d}">${d}</option>`;
+        sendDept.innerHTML += `<option value="${d}">${d}</option>`;
+      });
+    }
+
+    function renderKPIs() {
+      const container = document.getElementById("kpiGridContainer");
+      const totalGroupMembers = groupsData.reduce((acc, g) => acc + Number(g.miembros), 0);
+
+      if (currentUser.role === "gerente") {
+        container.innerHTML = `
+          <div class="kpi-card">
+            <div class="kpi-label">Padrón Nacional Proyectado</div>
+            <div class="kpi-value">${totalGroupMembers.toLocaleString("es-PE")}</div>
+            <div class="kpi-sub">Meta escalable: 90,000 usuarios</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Registros Activos (Local)</div>
+            <div class="kpi-value">${usersData.length}</div>
+            <div class="kpi-sub">Con número celular verificado</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Grupos Vinculados (Mod. 2)</div>
+            <div class="kpi-value">${groupsData.length}</div>
+            <div class="kpi-sub">Organizados por Departamento</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Envíos Segmentados</div>
+            <div class="kpi-value">${historyData.length}</div>
+            <div class="kpi-sub">100% Privacidad de números</div>
+          </div>
+        `;
+      } else {
+        const liderHistoryCount = historyData.filter(h => h.role === "lider").length;
+        container.innerHTML = `
+          <div class="kpi-card">
+            <div class="kpi-label">Contactos Disponibles</div>
+            <div class="kpi-value">${usersData.length}</div>
+            <div class="kpi-sub">Base operativa filtrable</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avisos Enviados (Líderes)</div>
+            <div class="kpi-value">${liderHistoryCount}</div>
+            <div class="kpi-sub">Envío individual seguro</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Protección de Datos</div>
+            <div class="kpi-value">100%</div>
+            <div class="kpi-sub">Números enmascarados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Estado de Sesión</div>
+            <div class="kpi-value">Activo</div>
+            <div class="kpi-sub">Perfil Operativo</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderRegionStats() {
+      const container = document.getElementById("regionStatsContainer");
+      const total = groupsData.reduce((acc, g) => acc + Number(g.miembros), 0) || 1;
+      container.innerHTML = "";
+      groupsData.forEach(g => {
+        const pct = Math.round((g.miembros / total) * 100);
+        container.innerHTML += `
+          <div class="progress-row">
+            <div class="progress-label">
+              <span><strong>${g.region}</strong></span>
+              <span>${Number(g.miembros).toLocaleString("es-PE")} (${pct}%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function maskPhone(phone) {
+      if (showUnmaskedPhones && currentUser && currentUser.role === "gerente") {
+        return phone;
+      }
+      return phone.slice(0, 3) + " *** " + phone.slice(6);
+    }
+
+    function togglePhoneMask() {
+      if (currentUser.role !== "gerente") return;
+      showUnmaskedPhones = !showUnmaskedPhones;
+      document.getElementById("btnTogglePrivacy").textContent = showUnmaskedPhones
+        ? "🙈 Ocultar Números"
+        : "👁️ Mostrar Números (Solo Gerencia)";
+      renderUsersTable();
+    }
+
+    function renderUsersTable() {
+      const search = document.getElementById("filterSearch").value.toLowerCase();
+      const dept = document.getElementById("filterDept").value;
+      const profile = document.getElementById("filterProfile").value;
+      const jornada = document.getElementById("filterJornada").value;
+
+      const filtered = usersData.filter(u => {
+        const matchSearch = u.nombre.toLowerCase().includes(search) || u.distrito.toLowerCase().includes(search);
+        const matchDept = !dept || u.dept === dept;
+        const matchProf = !profile || u.perfil === profile;
+        const matchJor = !jornada || u.jornada === jornada;
+        return matchSearch && matchDept && matchProf && matchJor;
+      });
+
+      const tbody = document.getElementById("usersTableBody");
+      tbody.innerHTML = "";
+      filtered.forEach(u => {
+        const tagClass = u.perfil.includes("Coordinador") ? "tag-blue" :
+                         u.perfil.includes("Líder") ? "tag-green" :
+                         u.perfil.includes("Autoridad") ? "tag-purple" : "tag-amber";
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${u.nombre}</strong></td>
+            <td><code>${maskPhone(u.celular)}</code></td>
+            <td>${u.dept}</td>
+            <td>${u.distrito}</td>
+            <td><span class="tag ${tagClass}">${u.perfil}</span></td>
+            <td>${u.jornada}</td>
+            <td>
+              <button class="btn btn-wa btn-sm" onclick="quickSelectForSend('${u.dept}', '${u.distrito}', '${u.perfil}')">Enviar</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">No se encontraron personas idóneas con esos filtros.</td></tr>';
+      }
+    }
+
+    function quickSelectForSend(dept, distrito, perfil) {
+      document.getElementById("sendDept").value = dept;
+      document.getElementById("sendDistrito").value = distrito;
+      document.getElementById("sendProfile").value = perfil;
+      updateRecipientPreview();
+      showSection("envios");
+    }
+
+    function openAddContactModal() {
+      const card = document.getElementById("addContactCard");
+      card.style.display = card.style.display === "none" ? "block" : "none";
+    }
+
+    function addNewContact(e) {
+      e.preventDefault();
+      const newContact = {
+        id: Date.now(),
+        nombre: document.getElementById("newNombre").value.trim(),
+        celular: document.getElementById("newCelular").value.trim(),
+        dept: document.getElementById("newDept").value,
+        distrito: document.getElementById("newDistrito").value.trim(),
+        perfil: document.getElementById("newPerfil").value,
+        jornada: "Sí"
+      };
+      usersData.unshift(newContact);
+      saveState();
+      e.target.reset();
+      document.getElementById("addContactCard").style.display = "none";
+      initAppViews();
+      showToast("Contacto agregado localmente con protección de número.");
+    }
+
+    // ==========================================
+    // ENVÍO SEGMENTADO
+    // ==========================================
+    function getFilteredRecipients() {
+      const dept = document.getElementById("sendDept").value;
+      const distrito = document.getElementById("sendDistrito").value.trim().toLowerCase();
+      const profile = document.getElementById("sendProfile").value;
+
+      return usersData.filter(u => {
+        const mDept = !dept || u.dept === dept;
+        const mDist = !distrito || u.distrito.toLowerCase().includes(distrito);
+        const mProf = !profile || u.perfil === profile;
+        return mDept && mDist && mProf;
+      });
+    }
+
+    function updateRecipientPreview() {
+      const list = getFilteredRecipients();
+      const namesPreview = list.slice(0, 3).map(u => `${u.nombre} (${maskPhone(u.celular)})`).join(", ");
+      const extra = list.length > 3 ? ` y ${list.length - 3} más...` : "";
+      document.getElementById("recipientPreviewBox").innerHTML = `
+        Destinatarios idóneos encontrados: <strong>${list.length}</strong><br/>
+        <span style="font-size:12px; color:#475569;">${list.length > 0 ? "Ej: " + namesPreview + extra : "Ajuste los filtros para seleccionar destinatarios."}</span>
+      `;
+    }
+
+    function executeSegmentedSend() {
+      const list = getFilteredRecipients();
+      const msg = document.getElementById("sendMessageText").value.trim();
+      const channel = document.getElementById("sendChannel").value;
+      const dept = document.getElementById("sendDept").value || "Todo el Perú";
+      const dist = document.getElementById("sendDistrito").value.trim();
+      const prof = document.getElementById("sendProfile").value || "Todos los perfiles";
+
+      if (list.length === 0) {
+        showToast("Error: No hay destinatarios seleccionados.");
+        return;
+      }
+      if (!msg) {
+        showToast("Por favor, escriba el mensaje a enviar.");
+        return;
+      }
+
+      const now = new Date();
+      const fechaStr = now.toLocaleDateString("es-PE") + " " + now.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+
+      historyData.unshift({
+        fecha: fechaStr,
+        emisor: `${currentUser.name} (${currentUser.label})`,
+        role: currentUser.role,
+        destino: `${dept}${dist ? " - " + dist : ""} • ${prof}`,
+        canal: channel,
+        cantidad: list.length,
+        mensaje: msg
+      });
+
+      saveState();
+      document.getElementById("sendMessageText").value = "";
+      renderHistory();
+      renderKPIs();
+      showToast(`Mensaje enviado de forma segura a ${list.length} persona(s) idónea(s).`);
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("sentHistoryContainer");
+      container.innerHTML = "";
+
+      // Si es líder, solo ve los envíos hechos por líderes (no la auditoría de Gerencia)
+      const visibleHistory = currentUser.role === "gerente"
+        ? historyData
+        : historyData.filter(h => h.role === "lider");
+
+      if (visibleHistory.length === 0) {
+        container.innerHTML = '<p style="font-size:13px; color:var(--muted);">Aún no has realizado envíos en esta sesión.</p>';
+        return;
+      }
+
+      visibleHistory.forEach(h => {
+        container.innerHTML += `
+          <div style="padding:12px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; background:#f8fafc;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:4px; gap:6px; flex-wrap:wrap;">
+              <span><strong>${h.emisor}</strong></span>
+              <span>${h.fecha}</span>
+            </div>
+            <div style="font-size:12px; font-weight:600; color:var(--primary); margin-bottom:4px;">
+              🎯 ${h.destino} (${h.cantidad} destinatarios)
+            </div>
+            <div style="font-size:13px; color:var(--text); margin-bottom:6px;">"${h.mensaje}"</div>
+            <span class="tag tag-green">${h.canal}</span>
+          </div>
+        `;
+      });
+    }
+
+    // ==========================================
+    // COMUNIDAD / MODALIDAD 2 (SOLO GERENTE)
+    // ==========================================
+    function toggleGroupForm() {
+      const f = document.getElementById("addGroupForm");
+      f.style.display = f.style.display === "none" ? "block" : "none";
+    }
+
+    function addNewGroup(e) {
+      e.preventDefault();
+      if (currentUser.role !== "gerente") return;
+      groupsData.push({
+        id: Date.now(),
+        nombre: document.getElementById("grpName").value.trim(),
+        region: document.getElementById("grpRegion").value.trim(),
+        admin: document.getElementById("grpAdmin").value.trim(),
+        miembros: Number(document.getElementById("grpMembers").value),
+        estado: "Vinculado (Mod. 2)"
+      });
+      saveState();
+      e.target.reset();
+      toggleGroupForm();
+      initAppViews();
+      showToast("Grupo regional vinculado exitosamente mediante Modalidad 2.");
+    }
+
+    function renderGroupsTable() {
+      const tbody = document.getElementById("groupsTableBody");
+      tbody.innerHTML = "";
+      groupsData.forEach(g => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${g.nombre}</strong></td>
+            <td>${g.region}</td>
+            <td>${g.admin}</td>
+            <td>${Number(g.miembros).toLocaleString("es-PE")}</td>
+            <td><span class="tag tag-green">${g.estado}</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    // ==========================================
+    // UTILIDADES
+    // ==========================================
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3500);
+    }
+  </script>
+</body>
+</html>
