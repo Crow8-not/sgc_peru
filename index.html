@@ -173,15 +173,15 @@
 
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Cómo funciona y seguridad</span>
+              <span class="card-title">Solución en Cascada (Gerente → Líderes)</span>
             </div>
             <div class="info-box">
-              <strong>Solución a los grupos saturados:</strong> En un chat masivo de Callao o Lima están todos mezclados. Aquí puedes filtrar y enviar información <strong>solo a las personas indicadas</strong> sin mostrar los teléfonos de los demás.
+              <strong>El Gerente solo escribe a los 40 Líderes:</strong> Con un solo celular corporativo es imposible y riesgoso escribir a <strong>64,000 usuarios</strong>. Aquí el Gerente envía el aviso únicamente a los <strong>40 Líderes</strong> (20 distritos), y cada Líder replica el mensaje a su equipo de <strong>1,600 personas</strong>.
             </div>
             <ul class="clean-list">
-              <li><strong>Gran alcance:</strong> Preparado para crecer de 12,450 a 90,000 contactos.</li>
-              <li><strong>Unión rápida (Modalidad 2):</strong> Conecta grupos que ya fueron creados por el equipo.</li>
-              <li><strong>Control por roles:</strong> Los líderes tienen vista operativa; solo Gerencia administra grupos y el control general.</li>
+              <li><strong>1 Celular Gerencial:</strong> Sin bloqueos por spam ni saturación de chats.</li>
+              <li><strong>40 Líderes · 20 Distritos:</strong> 2 líderes por distrito, cada uno a cargo de 1,600 usuarios.</li>
+              <li><strong>Privacidad total:</strong> Los teléfonos de los 64,000 usuarios permanecen ocultos.</li>
             </ul>
           </div>
         </div>
@@ -189,14 +189,14 @@
         <!-- Vista Líderes en Dashboard -->
         <div class="card" id="dashboardLiderView" style="display:none;">
           <div class="card-header">
-            <span class="card-title">Guía Rápida para Líderes</span>
+            <span class="card-title">Guía Rápida para Líderes (Tu Equipo: 1,600 Usuarios)</span>
             <span class="meta-label">Vista operativa</span>
           </div>
           <div class="info-box">
-            <strong>Bienvenido, Líder:</strong> Desde aquí puedes buscar contactos de tu red, agregar nuevos participantes y enviar avisos solo a las personas indicadas.
+            <strong>Bienvenido, Líder:</strong> Gerencia te envía los avisos directamente a ti para no saturar su celular. Desde aquí recibes el comunicado y lo compartes con tu equipo de <strong>1,600 usuarios</strong> de forma privada.
           </div>
           <p class="muted-note">
-            <strong>Privacidad de números:</strong> Para proteger los datos de más de 12,450 personas, los celulares aparecen ocultos (ej. <code>945 *** 409</code>). Solo Gerencia puede administrar grupos y ver los datos completos.
+            <strong>Privacidad de números:</strong> Para proteger los datos de los 64,000 usuarios en los 20 distritos, los celulares aparecen ocultos (ej. <code>945 *** 409</code>). Solo Gerencia puede administrar grupos y ver los datos completos.
           </p>
           <div class="inbox-block">
             <div class="card-header inbox-header">
@@ -224,10 +224,16 @@
             </div>
           </div>
 
-          <div class="filters-bar">
+          <div class="filters-bar filters-bar-3">
             <input type="text" id="filterSearch" class="form-control" placeholder="Buscar por nombre o distrito..." oninput="renderUsersTable()" />
-            <select id="filterDept" class="form-control" onchange="renderUsersTable()">
+            <select id="filterDept" class="form-control" onchange="onFilterDeptChange()">
               <option value="">Todos los Departamentos</option>
+            </select>
+            <select id="filterProvincia" class="form-control" onchange="onFilterProvinciaChange()" disabled>
+              <option value="">Primero elige un departamento</option>
+            </select>
+            <select id="filterDistrito" class="form-control" onchange="renderUsersTable()" disabled>
+              <option value="">Primero elige una provincia</option>
             </select>
             <select id="filterProfile" class="form-control" onchange="renderUsersTable()">
               <option value="">Todos los Roles</option>
@@ -251,6 +257,7 @@
                   <th>Nombre Completo</th>
                   <th>Celular (Oculto)</th>
                   <th>Departamento</th>
+                  <th>Provincia</th>
                   <th>Distrito</th>
                   <th>Rol o Función</th>
                   <th>Reuniones</th>
@@ -271,20 +278,15 @@
           <form onsubmit="addNewContact(event)" class="filters-bar" style="margin-bottom:0;">
             <input type="text" id="newNombre" class="form-control" placeholder="Nombres y Apellidos" required />
             <input type="text" id="newCelular" class="form-control" placeholder="Celular (9 dígitos)" pattern="9[0-9]{8}" required />
-            <select id="newDept" class="form-control" required>
-              <option value="Callao">Callao</option>
-              <option value="Lima">Lima</option>
-              <option value="Arequipa">Arequipa</option>
-              <option value="Cusco">Cusco</option>
-              <option value="La Libertad">La Libertad</option>
-              <option value="Piura">Piura</option>
-              <option value="Lambayeque">Lambayeque</option>
-              <option value="Junín">Junín</option>
-              <option value="Loreto">Loreto</option>
-              <option value="Puno">Puno</option>
-              <option value="Áncash">Áncash</option>
+            <select id="newDept" class="form-control" onchange="onNewDeptChange()" required>
+              <option value="">Elige Departamento</option>
             </select>
-            <input type="text" id="newDistrito" class="form-control" placeholder="Distrito (ej. Ventanilla)" required />
+            <select id="newProvincia" class="form-control" onchange="onNewProvinciaChange()" disabled required>
+              <option value="">Primero elige departamento</option>
+            </select>
+            <select id="newDistrito" class="form-control" disabled required>
+              <option value="">Primero elige provincia</option>
+            </select>
             <select id="newPerfil" class="form-control" required>
               <option value="Encargado de Zona">Encargado de Zona</option>
               <option value="Líder de Zona">Líder de Zona</option>
@@ -303,18 +305,29 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">Escribir Mensaje por Filtro</span>
-              <span class="meta-label">Números ocultos</span>
+              <div class="header-actions">
+                <button type="button" id="btnSelectOnlyLeaders" class="btn btn-outline btn-sm" onclick="selectOnlyLeadersForSend()">Solo los 40 Líderes</button>
+                <span class="meta-label">Números ocultos</span>
+              </div>
             </div>
 
             <div class="form-group">
-              <label>Departamento</label>
-              <select id="sendDept" class="form-control" onchange="updateRecipientPreview()">
-                <option value="">Todo el Perú</option>
+              <label for="sendDept">Departamento</label>
+              <select id="sendDept" class="form-control" onchange="onSendDeptChange()">
+                <option value="">Todo el Perú (Nacional)</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Distrito (opcional)</label>
-              <input type="text" id="sendDistrito" class="form-control" placeholder="Ej. Callao, Miraflores..." oninput="updateRecipientPreview()" />
+              <label for="sendProvincia">Provincia (opcional)</label>
+              <select id="sendProvincia" class="form-control" onchange="onSendProvinciaChange()" disabled>
+                <option value="">Primero elige un departamento</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="sendDistrito">Distrito (opcional)</label>
+              <select id="sendDistrito" class="form-control" onchange="updateRecipientPreview()" disabled>
+                <option value="">Primero elige una provincia</option>
+              </select>
             </div>
             <div class="form-group">
               <label>Rol de la persona</label>
@@ -451,7 +464,7 @@
             </form>
           </div>
 
-          <div class="filters-bar" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="filters-bar filters-bar-3">
             <input type="text" id="grpFilterSearch" class="form-control" placeholder="Buscar grupo o responsable..." oninput="renderGroupsTable()" />
             <input type="text" id="grpFilterRegion" class="form-control" placeholder="Filtrar por región o distrito..." oninput="renderGroupsTable()" />
             <select id="grpFilterCategory" class="form-control" onchange="renderGroupsTable()">
@@ -495,7 +508,7 @@
             Revisa los grupos ordenados por región, distrito o tema y <strong>únete solo a los que te interesen</strong>. Puedes salir cuando quieras.
           </div>
 
-          <div class="filters-bar" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="filters-bar filters-bar-3">
             <input type="text" id="expFilterSearch" class="form-control" placeholder="Buscar grupo..." oninput="renderExploreGroups()" />
             <input type="text" id="expFilterRegion" class="form-control" placeholder="Filtrar por región..." oninput="renderExploreGroups()" />
             <select id="expFilterCategory" class="form-control" onchange="renderExploreGroups()">
@@ -538,10 +551,10 @@
             </table>
           </div>
           <div class="agreements-block">
-            <h4>Acuerdos de la Reunión:</h4>
-            <p>1. Se crea la <strong>Comunidad de WhatsApp Institucional</strong> porque la mayoría de personas participa desde su celular.</p>
-            <p>2. Se usa la <strong>Modalidad 2</strong> (conectar grupos ya creados por el equipo) para avanzar más rápido con una lista de 12,450 a 90,000 usuarios en todo el país.</p>
-            <p>3. Se usa esta página web para enviar mensajes solo a la <strong>persona indicada</strong> según su distrito o región, manteniendo los teléfonos ocultos y seguros.</p>
+            <h4>Solución y Acuerdos del Proyecto:</h4>
+            <p>1. <strong>Alternativa creativa en cascada:</strong> Para llegar a <strong>64,000 usuarios en 20 distritos</strong> desde un solo celular corporativo, el Gerente envía únicamente a los <strong>40 Líderes</strong> y cada Líder replica el aviso a su equipo (1,600 usuarios).</p>
+            <p>2. <strong>Modalidad 2:</strong> Se conectan los grupos ya creados por distrito para organizar los equipos sin saturar el WhatsApp principal del Gerente.</p>
+            <p>3. <strong>Seguridad y Privacidad:</strong> Se usa esta plataforma web para filtrar por distrito o rol manteniendo los números celulares ocultos y protegidos.</p>
           </div>
         </div>
       </section>
@@ -551,6 +564,7 @@
   <div id="toast" class="toast"></div>
 
   <!-- Datos separados -->
+  <script src="/data/ubigeo.js"></script>
   <script src="/data/personas.js"></script>
   <script src="/data/grupos.js"></script>
   <script src="/data/historial.js"></script>

@@ -69,8 +69,19 @@ const PROFILE_MIGRATION = {
 function migrateUsers(list) {
   return list.map(u => ({
     ...u,
+    provincia: u.provincia || (typeof inferProvinceFromUbigeo === "function" ? inferProvinceFromUbigeo(u.dept, u.distrito) : ""),
     perfil: PROFILE_MIGRATION[u.perfil] || u.perfil
   }));
+}
+
+const DATA_VERSION = "v3_ubigeo";
+if (localStorage.getItem("sgc_version") !== DATA_VERSION) {
+  localStorage.removeItem("sgc_users");
+  localStorage.removeItem("sgc_groups");
+  localStorage.removeItem("sgc_history");
+  localStorage.removeItem("sgc_announcements");
+  localStorage.removeItem("sgc_joined_groups");
+  localStorage.setItem("sgc_version", DATA_VERSION);
 }
 
 let usersData = migrateUsers(JSON.parse(localStorage.getItem("sgc_users")) || DEFAULT_USERS);
@@ -80,6 +91,7 @@ let announcementsData = JSON.parse(localStorage.getItem("sgc_announcements")) ||
 let joinedGroupIds = JSON.parse(localStorage.getItem("sgc_joined_groups")) || DEFAULT_LEADER_JOINED_GROUPS;
 
 function saveState() {
+  localStorage.setItem("sgc_version", DATA_VERSION);
   localStorage.setItem("sgc_users", JSON.stringify(usersData));
   localStorage.setItem("sgc_groups", JSON.stringify(groupsData));
   localStorage.setItem("sgc_history", JSON.stringify(historyData));
@@ -95,7 +107,7 @@ function resetLocalData() {
   joinedGroupIds = [...DEFAULT_LEADER_JOINED_GROUPS];
   saveState();
   initAppViews();
-  showToast("Datos de prueba restablecidos.");
+  showToast("Datos de prueba restablecidos (64,000 usuarios · 20 distritos · 40 líderes).");
 }
 
 // ==========================================
@@ -179,21 +191,26 @@ function configureRoleUI() {
   document.getElementById("announcementReadOnlyCard").style.display = isGerente ? "none" : "block";
 
   const btnPrivacy = document.getElementById("btnTogglePrivacy");
+  const btnOnlyLeaders = document.getElementById("btnSelectOnlyLeaders");
   if (isGerente) {
     btnPrivacy.style.display = "inline-flex";
+    if (btnOnlyLeaders) btnOnlyLeaders.style.display = "inline-flex";
   } else {
     showUnmaskedPhones = false;
     btnPrivacy.style.display = "none";
+    if (btnOnlyLeaders) btnOnlyLeaders.style.display = "none";
   }
 
   const sendChannel = document.getElementById("sendChannel");
   if (isGerente) {
     sendChannel.innerHTML = `
+      <option value="Envío en Cascada (Gerente → Líderes)">Envío en Cascada (Gerente → Líderes)</option>
       <option value="Mensaje Individual Privado (Sin mostrar números)">Mensaje Individual Privado (Sin mostrar números)</option>
       <option value="Canal de Avisos General de la Comunidad">Canal de Avisos General de la Comunidad</option>
     `;
   } else {
     sendChannel.innerHTML = `
+      <option value="Difusión del Líder a su Equipo (1,600 usuarios)">Difusión del Líder a su Equipo (1,600 usuarios)</option>
       <option value="Mensaje Individual Privado (Tu Red)">Mensaje Individual Privado (Tu Red)</option>
     `;
   }
@@ -231,20 +248,20 @@ function showSection(secId) {
   if (activeNav) activeNav.classList.add("active");
 
   const titlesGerente = {
-    dashboard: ["Panel General Nacional", "Resumen de la Comunidad WhatsApp (de 12,450 a 90,000 personas)"],
-    avisos: ["Canal de Avisos Centralizado", "Publica avisos para miles de personas a la vez sin mostrar teléfonos"],
-    personas: ["Directorio de Personas Idóneas", "Busca rápidamente por departamento, distrito o rol"],
-    envios: ["Envío Segmentado Nacional", "Envía mensajes solo a las personas indicadas sin llenar otros chats"],
-    comunidad: ["Comunidad y Moderación (50+ Grupos)", "Ordena por región o tipo, pausa o desconecta grupos fácilmente"],
-    equipo: ["Acta y Equipo Asignado", "Datos del celular corporativo y acuerdos del proyecto"]
+    dashboard: ["Panel General Nacional", "64,000 usuarios organizados en 20 distritos mediante 40 líderes"],
+    avisos: ["Canal de Avisos Centralizado", "Publica avisos generales sin exponer los números de teléfono"],
+    personas: ["Directorio de Personas Idóneas", "40 Líderes y contactos filtrables por distrito o rol"],
+    envios: ["Envío Segmentado Nacional", "El Gerente escribe solo a los Líderes o al filtro elegido sin saturar su celular"],
+    comunidad: ["Comunidad y Moderación (50+ Grupos)", "20 distritos conectados y espacio para crecer a 50+ grupos"],
+    equipo: ["Acta y Equipo Asignado", "Celular corporativo del Gerente y solución en cascada"]
   };
 
   const titlesLider = {
-    dashboard: ["Mi Panel Operativo", "Consulta contactos de tu red y envía mensajes con números ocultos"],
+    dashboard: ["Mi Panel Operativo", "Recibe avisos de Gerencia y compártelos con tu equipo de 1,600 usuarios"],
     avisos: ["Canal de Avisos Centralizado", "Avisos oficiales publicados por Gerencia (solo lectura)"],
     explorar: ["Explorar Subgrupos", "Elige libremente a qué grupos unirte o de cuáles salir"],
     personas: ["Personas de mi Red", "Busca contactos por zona o rol (números ocultos por seguridad)"],
-    envios: ["Enviar Aviso Local", "Envía mensajes directos sin mostrar números de teléfono"]
+    envios: ["Enviar Aviso Local", "Envía mensajes a tu equipo sin mostrar números de teléfono"]
   };
 
   const t = currentUser.role === "gerente" ? titlesGerente[secId] : titlesLider[secId];
@@ -271,44 +288,168 @@ function initAppViews() {
 }
 
 function populateDeptSelects() {
-  const depts = [...new Set(usersData.map(u => u.dept))].sort();
+  const catalogDepts = typeof PERU_UBIGEO === "object" ? Object.keys(PERU_UBIGEO) : [];
+  const userDepts = usersData.map(u => u.dept);
+  const depts = [...new Set([...catalogDepts, ...userDepts])].sort((a, b) => a.localeCompare(b, "es"));
+
   const filterDept = document.getElementById("filterDept");
   const sendDept = document.getElementById("sendDept");
+  const newDept = document.getElementById("newDept");
+
+  const prevFilterDept = filterDept.value;
+  const prevSendDept = sendDept.value;
+  const prevNewDept = newDept ? newDept.value : "";
 
   filterDept.innerHTML = '<option value="">Todos los Departamentos</option>';
   sendDept.innerHTML = '<option value="">Todo el Perú (Nacional)</option>';
+  if (newDept) newDept.innerHTML = '<option value="">Elige Departamento</option>';
 
   depts.forEach(d => {
     filterDept.innerHTML += `<option value="${d}">${d}</option>`;
     sendDept.innerHTML += `<option value="${d}">${d}</option>`;
+    if (newDept) newDept.innerHTML += `<option value="${d}">${d}</option>`;
   });
+
+  if (prevFilterDept && depts.includes(prevFilterDept)) filterDept.value = prevFilterDept;
+  if (prevSendDept && depts.includes(prevSendDept)) sendDept.value = prevSendDept;
+  if (newDept && prevNewDept && depts.includes(prevNewDept)) newDept.value = prevNewDept;
+
+  syncCascadeSelects("filter", false);
+  syncCascadeSelects("send", false);
+  syncCascadeSelects("new", true);
+}
+
+function getProvincesForDept(dept) {
+  if (!dept) return [];
+  const catalogProvs = (typeof PERU_UBIGEO === "object" && PERU_UBIGEO[dept])
+    ? Object.keys(PERU_UBIGEO[dept])
+    : [];
+  const userProvs = usersData
+    .filter(u => u.dept === dept && u.provincia)
+    .map(u => u.provincia);
+  return [...new Set([...catalogProvs, ...userProvs])].sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function getDistrictsForProvince(dept, prov) {
+  if (!dept || !prov) return [];
+  const catalogDists = (typeof PERU_UBIGEO === "object" && PERU_UBIGEO[dept] && PERU_UBIGEO[dept][prov])
+    ? PERU_UBIGEO[dept][prov]
+    : [];
+  const userDists = usersData
+    .filter(u => u.dept === dept && (u.provincia || "") === prov && u.distrito)
+    .map(u => u.distrito);
+  return [...new Set([...catalogDists, ...userDists])].sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function syncCascadeSelects(prefix, isRequired) {
+  const deptEl = document.getElementById(prefix + "Dept");
+  const provEl = document.getElementById(prefix + "Provincia");
+  const distEl = document.getElementById(prefix + "Distrito");
+  if (!deptEl || !provEl || !distEl) return;
+
+  const dept = deptEl.value;
+  const currentProv = provEl.value;
+  const provs = getProvincesForDept(dept);
+
+  if (!dept) {
+    provEl.innerHTML = `<option value="">${isRequired ? "Primero elige departamento" : "Primero elige un departamento"}</option>`;
+    provEl.disabled = true;
+    distEl.innerHTML = `<option value="">${isRequired ? "Primero elige provincia" : "Primero elige una provincia"}</option>`;
+    distEl.disabled = true;
+    return;
+  }
+
+  provEl.innerHTML = `<option value="">${isRequired ? "Elige Provincia" : "Todas las Provincias"}</option>`;
+  provs.forEach(p => {
+    provEl.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+  provEl.disabled = false;
+  if (currentProv && provs.includes(currentProv)) {
+    provEl.value = currentProv;
+  }
+
+  const selectedProv = provEl.value;
+  const currentDist = distEl.value;
+  if (!selectedProv) {
+    distEl.innerHTML = `<option value="">${isRequired ? "Primero elige provincia" : "Primero elige una provincia"}</option>`;
+    distEl.disabled = true;
+    return;
+  }
+
+  const dists = getDistrictsForProvince(dept, selectedProv);
+  distEl.innerHTML = `<option value="">${isRequired ? "Elige Distrito" : "Todos los Distritos"}</option>`;
+  dists.forEach(d => {
+    distEl.innerHTML += `<option value="${d}">${d}</option>`;
+  });
+  distEl.disabled = false;
+  if (currentDist && dists.includes(currentDist)) {
+    distEl.value = currentDist;
+  }
+}
+
+function onFilterDeptChange() {
+  document.getElementById("filterProvincia").value = "";
+  document.getElementById("filterDistrito").value = "";
+  syncCascadeSelects("filter", false);
+  renderUsersTable();
+}
+
+function onFilterProvinciaChange() {
+  document.getElementById("filterDistrito").value = "";
+  syncCascadeSelects("filter", false);
+  renderUsersTable();
+}
+
+function onSendDeptChange() {
+  document.getElementById("sendProvincia").value = "";
+  document.getElementById("sendDistrito").value = "";
+  syncCascadeSelects("send", false);
+  updateRecipientPreview();
+}
+
+function onSendProvinciaChange() {
+  document.getElementById("sendDistrito").value = "";
+  syncCascadeSelects("send", false);
+  updateRecipientPreview();
+}
+
+function onNewDeptChange() {
+  document.getElementById("newProvincia").value = "";
+  document.getElementById("newDistrito").value = "";
+  syncCascadeSelects("new", true);
+}
+
+function onNewProvinciaChange() {
+  document.getElementById("newDistrito").value = "";
+  syncCascadeSelects("new", true);
 }
 
 function renderKPIs() {
   const container = document.getElementById("kpiGridContainer");
   const totalGroupMembers = groupsData.reduce((acc, g) => acc + Number(g.miembros), 0);
+  const totalLeaders = usersData.filter(u => u.perfil === "Líder de Zona").length;
 
   if (currentUser.role === "gerente") {
     container.innerHTML = `
       <div class="kpi-card">
-        <div class="kpi-label">Total de Miembros en Grupos</div>
+        <div class="kpi-label">Total de Usuarios</div>
         <div class="kpi-value">${totalGroupMembers.toLocaleString("es-PE")}</div>
-        <div class="kpi-sub">Meta estimada: 90,000 personas</div>
+        <div class="kpi-sub">En ${groupsData.length} distritos conectados</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Contactos Guardados</div>
-        <div class="kpi-value">${usersData.length}</div>
-        <div class="kpi-sub">Con celular verificado</div>
+        <div class="kpi-label">Líderes a Cargo</div>
+        <div class="kpi-value">${totalLeaders}</div>
+        <div class="kpi-sub">1,600 usuarios por cada líder</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Grupos Conectados</div>
+        <div class="kpi-label">Distritos Organizados</div>
         <div class="kpi-value">${groupsData.length}</div>
-        <div class="kpi-sub">Ordenados por región</div>
+        <div class="kpi-sub">Capacidad para 50+ grupos</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Mensajes por Filtro</div>
         <div class="kpi-value">${historyData.length}</div>
-        <div class="kpi-sub">Números 100% privados</div>
+        <div class="kpi-sub">Sin saturar el celular central</div>
       </div>
     `;
   } else {
@@ -316,19 +457,19 @@ function renderKPIs() {
     const gerenteReceivedCount = historyData.filter(h => h.role === "gerente").length;
     container.innerHTML = `
       <div class="kpi-card">
-        <div class="kpi-label">Contactos Disponibles</div>
-        <div class="kpi-value">${usersData.length}</div>
-        <div class="kpi-sub">Listos para filtrar</div>
+        <div class="kpi-label">Mi Equipo Asignado</div>
+        <div class="kpi-value">1,600</div>
+        <div class="kpi-sub">Usuarios en tu distrito</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Recibidos de Gerencia</div>
         <div class="kpi-value">${gerenteReceivedCount}</div>
-        <div class="kpi-sub">Avisos importantes</div>
+        <div class="kpi-sub">Listos para reenviar al equipo</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Mensajes Enviados</div>
+        <div class="kpi-label">Avisos a tu Equipo</div>
         <div class="kpi-value">${liderHistoryCount}</div>
-        <div class="kpi-sub">Envío individual seguro</div>
+        <div class="kpi-sub">Envío privado sin exponer números</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Privacidad de Números</div>
@@ -342,14 +483,25 @@ function renderKPIs() {
 function renderRegionStats() {
   const container = document.getElementById("regionStatsContainer");
   const total = groupsData.reduce((acc, g) => acc + Number(g.miembros), 0) || 1;
-  container.innerHTML = "";
+
+  // Agrupar distritos por región/departamento para mostrar un resumen limpio
+  const byRegion = {};
   groupsData.forEach(g => {
-    const pct = Math.round((g.miembros / total) * 100);
+    const key = g.region;
+    if (!byRegion[key]) byRegion[key] = { miembros: 0, distritos: 0 };
+    byRegion[key].miembros += Number(g.miembros);
+    byRegion[key].distritos += 1;
+  });
+
+  container.innerHTML = "";
+  Object.entries(byRegion).forEach(([region, info]) => {
+    const pct = Math.round((info.miembros / total) * 100);
+    const distLabel = info.distritos === 1 ? "1 distrito" : `${info.distritos} distritos`;
     container.innerHTML += `
       <div class="progress-row">
         <div class="progress-label">
-          <span><strong>${g.region}</strong></span>
-          <span>${Number(g.miembros).toLocaleString("es-PE")} (${pct}%)</span>
+          <span><strong>${region}</strong> <span class="meta-label">(${distLabel})</span></span>
+          <span>${info.miembros.toLocaleString("es-PE")} (${pct}%)</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:${pct}%"></div>
@@ -378,20 +530,28 @@ function togglePhoneMask() {
 function renderUsersTable() {
   const search = document.getElementById("filterSearch").value.toLowerCase();
   const dept = document.getElementById("filterDept").value;
+  const provincia = document.getElementById("filterProvincia").value;
+  const distrito = document.getElementById("filterDistrito").value;
   const profile = document.getElementById("filterProfile").value;
   const jornada = document.getElementById("filterJornada").value;
 
   const filtered = usersData.filter(u => {
-    const matchSearch = u.nombre.toLowerCase().includes(search) || u.distrito.toLowerCase().includes(search);
+    const userProv = u.provincia || (typeof inferProvinceFromUbigeo === "function" ? inferProvinceFromUbigeo(u.dept, u.distrito) : "");
+    const matchSearch = u.nombre.toLowerCase().includes(search) ||
+                        userProv.toLowerCase().includes(search) ||
+                        u.distrito.toLowerCase().includes(search);
     const matchDept = !dept || u.dept === dept;
+    const matchProv = !provincia || userProv === provincia;
+    const matchDist = !distrito || u.distrito === distrito;
     const matchProf = !profile || u.perfil === profile;
     const matchJor = !jornada || u.jornada === jornada;
-    return matchSearch && matchDept && matchProf && matchJor;
+    return matchSearch && matchDept && matchProv && matchDist && matchProf && matchJor;
   });
 
   const tbody = document.getElementById("usersTableBody");
   tbody.innerHTML = "";
   filtered.forEach(u => {
+    const userProv = u.provincia || (typeof inferProvinceFromUbigeo === "function" ? inferProvinceFromUbigeo(u.dept, u.distrito) : "");
     const tagClass = u.perfil.includes("Encargado") ? "tag-blue" :
                      u.perfil.includes("Líder") ? "tag-green" :
                      u.perfil.includes("Autoridad") ? "tag-purple" : "tag-amber";
@@ -400,24 +560,37 @@ function renderUsersTable() {
         <td><strong>${u.nombre}</strong></td>
         <td><code>${maskPhone(u.celular)}</code></td>
         <td>${u.dept}</td>
+        <td>${userProv}</td>
         <td>${u.distrito}</td>
         <td><span class="tag ${tagClass}">${u.perfil}</span></td>
         <td>${u.jornada}</td>
         <td>
-          <button class="btn btn-wa btn-sm" onclick="quickSelectForSend('${u.dept}', '${u.distrito}', '${u.perfil}')">Enviar</button>
+          <button class="btn btn-wa btn-sm" onclick="quickSelectForSend('${u.dept}', '${userProv}', '${u.distrito}', '${u.perfil}')">Enviar</button>
         </td>
       </tr>
     `;
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted);">No se encontraron personas con esos filtros.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted);">No se encontraron personas con esos filtros.</td></tr>';
   }
 }
 
-function quickSelectForSend(dept, distrito, perfil) {
-  document.getElementById("sendDept").value = dept;
-  document.getElementById("sendDistrito").value = distrito;
+function quickSelectForSend(dept, provincia, distrito, perfil) {
+  const sendDeptEl = document.getElementById("sendDept");
+  const sendProvEl = document.getElementById("sendProvincia");
+  const sendDistEl = document.getElementById("sendDistrito");
+
+  sendDeptEl.value = dept;
+  syncCascadeSelects("send", false);
+  if (provincia) {
+    sendProvEl.value = provincia;
+    syncCascadeSelects("send", false);
+  }
+  if (distrito) {
+    sendDistEl.value = distrito;
+  }
+
   document.getElementById("sendProfile").value = perfil;
   updateRecipientPreview();
   showSection("envios");
@@ -430,18 +603,29 @@ function openAddContactModal() {
 
 function addNewContact(e) {
   e.preventDefault();
+  const dept = document.getElementById("newDept").value;
+  const provincia = document.getElementById("newProvincia").value;
+  const distrito = document.getElementById("newDistrito").value;
+  if (!dept || !provincia || !distrito) {
+    showToast("Selecciona departamento, provincia y distrito.");
+    return;
+  }
+
   const newContact = {
     id: Date.now(),
     nombre: document.getElementById("newNombre").value.trim(),
     celular: document.getElementById("newCelular").value.trim(),
-    dept: document.getElementById("newDept").value,
-    distrito: document.getElementById("newDistrito").value.trim(),
+    dept,
+    provincia,
+    distrito,
     perfil: document.getElementById("newPerfil").value,
+    equipo: document.getElementById("newPerfil").value === "Líder de Zona" ? 1600 : 0,
     jornada: "Sí"
   };
   usersData.unshift(newContact);
   saveState();
   e.target.reset();
+  onNewDeptChange();
   document.getElementById("addContactCard").style.display = "none";
   initAppViews();
   showToast("Contacto guardado con número protegido.");
@@ -452,23 +636,40 @@ function addNewContact(e) {
 // ==========================================
 function getFilteredRecipients() {
   const dept = document.getElementById("sendDept").value;
-  const distrito = document.getElementById("sendDistrito").value.trim().toLowerCase();
+  const provincia = document.getElementById("sendProvincia").value;
+  const distrito = document.getElementById("sendDistrito").value;
   const profile = document.getElementById("sendProfile").value;
 
   return usersData.filter(u => {
+    const userProv = u.provincia || (typeof inferProvinceFromUbigeo === "function" ? inferProvinceFromUbigeo(u.dept, u.distrito) : "");
     const mDept = !dept || u.dept === dept;
-    const mDist = !distrito || u.distrito.toLowerCase().includes(distrito);
+    const mProv = !provincia || userProv === provincia;
+    const mDist = !distrito || u.distrito === distrito;
     const mProf = !profile || u.perfil === profile;
-    return mDept && mDist && mProf;
+    return mDept && mProv && mDist && mProf;
   });
+}
+
+function selectOnlyLeadersForSend() {
+  document.getElementById("sendDept").value = "";
+  document.getElementById("sendProvincia").value = "";
+  document.getElementById("sendDistrito").value = "";
+  syncCascadeSelects("send", false);
+  document.getElementById("sendProfile").value = "Líder de Zona";
+  updateRecipientPreview();
+  showToast("Filtro ajustado: solo los 40 Líderes seleccionados.");
 }
 
 function updateRecipientPreview() {
   const list = getFilteredRecipients();
+  const teamTotal = list.reduce((acc, u) => acc + (Number(u.equipo) || 0), 0);
   const namesPreview = list.slice(0, 3).map(u => `${u.nombre} (${maskPhone(u.celular)})`).join(", ");
   const extra = list.length > 3 ? ` y ${list.length - 3} más...` : "";
+  const cascadeNote = teamTotal > 0
+    ? ` · cubren <strong>${teamTotal.toLocaleString("es-PE")}</strong> usuarios en sus equipos`
+    : "";
   document.getElementById("recipientPreviewBox").innerHTML = `
-    Personas encontradas para enviar: <strong>${list.length}</strong><br/>
+    Personas encontradas para enviar: <strong>${list.length}</strong>${cascadeNote}<br/>
     <span style="font-size:12px; color:var(--muted);">${list.length > 0 ? "Ej: " + namesPreview + extra : "Cambia los filtros para elegir a quiénes enviar."}</span>
   `;
 }
@@ -478,7 +679,8 @@ function executeSegmentedSend() {
   const msg = document.getElementById("sendMessageText").value.trim();
   const channel = document.getElementById("sendChannel").value;
   const dept = document.getElementById("sendDept").value || "Todo el Perú";
-  const dist = document.getElementById("sendDistrito").value.trim();
+  const prov = document.getElementById("sendProvincia").value;
+  const dist = document.getElementById("sendDistrito").value;
   const prof = document.getElementById("sendProfile").value || "Todos los roles";
 
   if (list.length === 0) {
@@ -490,6 +692,10 @@ function executeSegmentedSend() {
     return;
   }
 
+  const locationParts = [dept];
+  if (prov) locationParts.push(prov);
+  if (dist) locationParts.push(dist);
+
   const now = new Date();
   const fechaStr = now.toLocaleDateString("es-PE") + " " + now.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
 
@@ -497,7 +703,7 @@ function executeSegmentedSend() {
     fecha: fechaStr,
     emisor: `${currentUser.name} (${currentUser.label})`,
     role: currentUser.role,
-    destino: `${dept}${dist ? " - " + dist : ""} • ${prof}`,
+    destino: `${locationParts.join(" / ")} • ${prof}`,
     canal: channel,
     cantidad: list.length,
     mensaje: msg
@@ -508,6 +714,30 @@ function executeSegmentedSend() {
   renderHistory();
   renderKPIs();
   showToast(`Mensaje enviado de forma privada a ${list.length} persona(s).`);
+}
+
+function forwardToMyTeam(idx) {
+  const gerenteMsgs = historyData.filter(h => h.role === "gerente");
+  const original = gerenteMsgs[idx];
+  if (!original || !currentUser || currentUser.role !== "lider") return;
+
+  const now = new Date();
+  const fechaStr = now.toLocaleDateString("es-PE") + " " + now.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+
+  historyData.unshift({
+    fecha: fechaStr,
+    emisor: `${currentUser.name} (LÍDER)`,
+    role: "lider",
+    destino: "Mi Equipo Asignado (Callao)",
+    canal: "Difusión en Cascada al Equipo",
+    cantidad: 1600,
+    mensaje: original.mensaje
+  });
+
+  saveState();
+  renderHistory();
+  renderKPIs();
+  showToast("Aviso replicado de forma privada a tu equipo de 1,600 usuarios.");
 }
 
 function renderHistory() {
@@ -530,7 +760,7 @@ function renderHistory() {
             <span><strong>${h.emisor}</strong></span>
             <span>${h.fecha}</span>
           </div>
-          <div class="history-dest">${h.destino} (${h.cantidad} destinatarios)</div>
+          <div class="history-dest">${h.destino} (${Number(h.cantidad).toLocaleString("es-PE")} destinatarios)</div>
           <div class="history-msg">"${h.mensaje}"</div>
           <div class="history-tags">
             <span class="tag tag-green">${h.canal}</span>
@@ -547,15 +777,18 @@ function renderHistory() {
     if (gerenteMsgs.length === 0) {
       liderInbox.innerHTML = '<p style="font-size:13px; color:var(--muted);">No tienes mensajes nuevos de Gerencia.</p>';
     } else {
-      liderInbox.innerHTML = gerenteMsgs.map(h => `
+      liderInbox.innerHTML = gerenteMsgs.map((h, idx) => `
         <div class="history-item from-gerente">
           <div class="history-meta">
             <span><strong>${h.emisor}</strong></span>
             <span>${h.fecha}</span>
           </div>
-          <div class="history-dest">${h.destino} (${h.cantidad} destinatarios)</div>
+          <div class="history-dest">${h.destino} (${Number(h.cantidad).toLocaleString("es-PE")} destinatarios)</div>
           <div class="history-msg">"${h.mensaje}"</div>
-          <span class="tag tag-blue">Comunicado de Gerencia</span>
+          <div class="history-tags" style="justify-content:space-between; align-items:center;">
+            <span class="tag tag-blue">Comunicado de Gerencia</span>
+            <button type="button" class="btn btn-wa btn-sm" onclick="forwardToMyTeam(${idx})">Reenviar a mi equipo (1,600)</button>
+          </div>
         </div>
       `).join("");
     }

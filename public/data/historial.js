@@ -3,12 +3,12 @@
 // ==========================================
 const DEFAULT_HISTORY = [
   {
-    fecha: "18/11/2026 09:30",
+    fecha: "20/11/2026 09:00",
     emisor: "Juan Pérez (GERENTE)",
     role: "gerente",
-    destino: "Callao • Solo Encargados de Zona",
-    canal: "Mensaje Individual Privado",
-    cantidad: 1,
-    mensaje: "Estimado encargado, te enviamos las indicaciones para la reunión de esta semana en el Callao."
+    destino: "Todo el Perú (20 Distritos) • Solo 40 Líderes de Zona",
+    canal: "Envío en Cascada (Gerente → Líderes)",
+    cantidad: 40,
+    mensaje: "Estimados líderes, les envío las indicaciones de la semana para que cada uno las comparta con su equipo de 1,600 usuarios."
   }
 ];
